@@ -32,3 +32,7 @@ These use the Go 1.24 [runtime.AddCleanup](https://go.dev/blog/cleanups-and-weak
 * The wrapper classes and memory management could be simplified future if [Proposal 70224](https://github.com/golang/go/issues/70224) is implemented.
 * [MPC](https://www.multiprecision.org/mpc/) complex number support
 
+## See Also
+
+* [ncw/gmp](https://github.com/ncw/gmp)
+
