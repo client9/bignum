@@ -3,20 +3,10 @@
 * [GMP](https://gmplib.org/)
 * [MPFR](https://www.mpfr.org/)
 
-## Zero-value is **NOT** ready to use.
+## TODO
 
-This will be fixed in a future version but for now, the zero-value is not ready to use.
-
-In the Stdlib versions, the zero value is ready is use and set to 0. 
-
-```
-var x big.Int
-x.Sign()
-```
-
-The BigNum versions will panic with a nil pointer exception.
-
-Use one of the New** variants to make a value, or initialize a value use Set**.
+* Zero-value is **NOT** ready to use.  You use a New... or Set.. function first.  To be fixed.
+* Various functions are indicated by "TODO" in the source
 
 ## Requires Go 1.24+
 
@@ -25,7 +15,7 @@ These use the Go 1.24 [runtime.AddCleanup](https://go.dev/blog/cleanups-and-weak
 ## Performance
 
 * Under 1,000 digits, the native libraries are likely to be faster.
-* Very large numbers are likely to 8-20x faster using GMP/MPFC.
+* For very large numbers, GMP/MPFR are 8-20x faster 
 
 ## Future work
 
