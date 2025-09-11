@@ -50,6 +50,7 @@ func (z *Int) Abs(x *Int) *Int {
 	mpz.Abs(z.ptr, x.ptr)
 	return z
 }
+
 func (z *Int) Add(x, y *Int) *Int {
 	z.init()
 	x.init()
@@ -105,12 +106,30 @@ func (z *Int) Exp(x, y, m *Int) *Int {
 }
 
 // TODO FILLBYTES
-// TODO FLOAT64
+
+func (z *Int) Float64() float64 {
+	z.init()
+	return mpz.GetD(z.ptr)
+}
+
 // TODO FORMAT
-// TODO GCD
+
+func (z *Int) Gcd(x, y *Int) *Int {
+	z.init()
+	x.init()
+	y.init()
+	mpz.Gcd(z.ptr, x.ptr, y.ptr)
+	return z
+}
+
 // TODO GOBDECODE
 // TODO GOBENCODE
-// TODO INT64
+
+func (z *Int) Int64() int64 {
+	z.init()
+	return int64(mpz.GetSi(z.ptr))
+}
+
 // TODO ISINT64
 // TODO ISUINT64
 // TODO LSH
@@ -194,9 +213,13 @@ func (z *Int) Sub(x, y *Int) *Int {
 }
 
 // TODO TEXT
-
 // TODO TRAILINGZEROBITS
-// TODO UINT64
+
+func (z *Int) Uint64() uint64 {
+	z.init()
+	return uint64(mpz.GetUi(z.ptr))
+}
+
 // TODO UNMARSHALJSON
 // TODO UNMARSHALTEXT
 // TODO XOR
