@@ -1,4 +1,4 @@
-package bigmath
+package mpfr
 
 import (
 	"testing"
