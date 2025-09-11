@@ -227,6 +227,10 @@ func UiPowUi(rop *Int, base uint, exp uint) {
 // 5.8 Root Extraction Functions
 //
 
+func Sqrt(rop *Int, op *Int) {
+	C.mpz_sqrt(&rop[0], &op[0])
+}
+
 // 5.9 Number Theoretic Functions
 func ProbabPrimeP(n *Int, reps int) int {
 	return int(C.mpz_probab_prime_p(&n[0], C.int(reps)))
