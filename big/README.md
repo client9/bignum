@@ -2,11 +2,12 @@
 
 * [GMP](https://gmplib.org/)
 * [MPFR](https://www.mpfr.org/)
+* [MPC](https://www.multiprecision.org/mpc/)
 
 ## TODO
 
-* Zero-value is **NOT** ready to use.  You use a New... or Set.. function first.  To be fixed.
 * Various functions are indicated by "TODO" in the source
+* Complex number support is not started
 
 ## Requires Go 1.24+
 
@@ -20,7 +21,6 @@ These use the Go 1.24 [runtime.AddCleanup](https://go.dev/blog/cleanups-and-weak
 ## Future work
 
 * The wrapper classes and memory management could be simplified future if [Proposal 70224](https://github.com/golang/go/issues/70224) is implemented.
-* [MPC](https://www.multiprecision.org/mpc/) complex number support
 
 ## See Also
 

@@ -5,8 +5,6 @@ import (
 	"runtime"
 )
 
-// Zero value is *not* ready to use.  It must be created by a New function or a Set function.
-// Otherwise it will panic on nil pointer.
 type Rat struct {
 	ptr *mpq.Rat
 }
@@ -33,16 +31,31 @@ func NewRatTmp(a, b int64) *Rat {
 	//runtime.AddCleanup(z, mpq.Clear, &n)
 	return z
 }
+func (z *Rat) init() {
+	if z.ptr == nil {
+		n := new(mpq.Rat)
+		mpq.Init(n)
+		z.ptr = n
+		runtime.AddCleanup(z, mpq.Clear, n)
+	}
+}
 func (z *Rat) Clear() {
-	mpq.Clear(z.ptr)
-	z.ptr = nil
+	if z.ptr != nil {
+		mpq.Clear(z.ptr)
+		z.ptr = nil
+	}
 }
 
 func (z *Rat) Abs(x *Rat) *Rat {
+	z.init()
+	x.init()
 	mpq.Abs(z.ptr, x.ptr)
 	return z
 }
 func (z *Rat) Add(x, y *Rat) *Rat {
+	z.init()
+	x.init()
+	y.init()
 	mpq.Add(z.ptr, x.ptr, y.ptr)
 	return z
 }
@@ -50,6 +63,8 @@ func (z *Rat) Add(x, y *Rat) *Rat {
 // TODO AppendText
 
 func (z *Rat) Cmp(y *Rat) *Rat {
+	z.init()
+	y.init()
 	mpq.Cmp(z.ptr, y.ptr)
 	return z
 }
@@ -65,6 +80,9 @@ func (z *Rat) Cmp(y *Rat) *Rat {
 // TODO MarshalText
 
 func (z *Rat) Mul(x, y *Rat) *Rat {
+	z.init()
+	x.init()
+	y.init()
 	mpq.Mul(z.ptr, x.ptr, y.ptr)
 	return z
 }
@@ -85,12 +103,17 @@ func (z *Rat) Mul(x, y *Rat) *Rat {
 // TODO SETUINT64
 
 func (z *Rat) Sign() int {
+	z.init()
 	return mpq.Sgn(z.ptr)
 }
 func (z *Rat) String() string {
+	z.init()
 	return mpq.GetStr(10, z.ptr)
 }
 func (z *Rat) Sub(x, y *Rat) *Rat {
+	z.init()
+	x.init()
+	y.init()
 	mpq.Sub(z.ptr, x.ptr, y.ptr)
 	return z
 }

@@ -7,9 +7,6 @@ import (
 	"github.com/client9/bignum/mpfr"
 )
 
-// Zero value is *not* ready to use.
-// It must be created by a New function or a Set function.
-// Otherwise it will panic on nil pointer.
 type Float struct {
 	ptr *mpfr.Float
 
@@ -36,7 +33,17 @@ func NewFloat(x float64) *Float {
 
 // TODO PARSEFLOAT
 
+func (z *Float) init() {
+	if z.ptr == nil {
+		n := new(mpfr.Float)
+		mpfr.InitSetD(n, 0, mpfr.RNDN)
+		z.ptr = n
+		runtime.AddCleanup(z, mpfr.Clear, n)
+	}
+}
 func (z *Float) Abs(x *Float) *Float {
+	z.init()
+	x.init()
 	mpfr.Abs(z.ptr, x.ptr, z.mode)
 	return z
 }
@@ -44,6 +51,9 @@ func (z *Float) Abs(x *Float) *Float {
 // TODO ACC
 
 func (z *Float) Add(x, y *Float) *Float {
+	z.init()
+	x.init()
+	y.init()
 	if z.prec == 0 {
 		z.prec = max(x.prec, y.prec)
 	}
@@ -57,22 +67,28 @@ func (z *Float) Add(x, y *Float) *Float {
 // NONSTANDARD
 // TODO make sure mpfr is ok with clearing Nul pointer.
 func (z *Float) Clear() {
-	mpfr.Clear(z.ptr)
-	z.ptr = nil
-	z.prec = 0
-	z.mode = 0
+	if z.ptr != nil {
+		mpfr.Clear(z.ptr)
+		z.ptr = nil
+		z.prec = 0
+		z.mode = 0
+	}
 }
 
 func (x *Float) Cmp(y *Float) int {
+	x.init()
+	y.init()
 	return mpfr.Cmp(x.ptr, y.ptr)
 }
 
 // TODO COPY
 
 func (z *Float) Float32() float32 {
+	z.init()
 	return mpfr.GetFlt(z.ptr, z.mode)
 }
 func (z *Float) Float64() float64 {
+	z.init()
 	return mpfr.GetD(z.ptr, z.mode)
 }
 
@@ -81,9 +97,11 @@ func (z *Float) Float64() float64 {
 // TODO GOBENCODE
 
 func (z *Float) Int() int {
+	z.init()
 	return int(mpfr.GetSi(z.ptr, z.mode))
 }
 func (z *Float) Int64() int64 {
+	z.init()
 	return int64(mpfr.GetSi(z.ptr, z.mode))
 }
 
@@ -94,9 +112,13 @@ func (z *Float) Int64() int64 {
 // TODO MINPREC
 
 func (z *Float) Mode() stdlib.RoundingMode {
+	z.init()
 	return exportRoundingMode(z.mode)
 }
 func (z *Float) Mul(x, y *Float) *Float {
+	z.init()
+	x.init()
+	y.init()
 	if z.prec == 0 {
 		z.prec = max(x.prec, y.prec)
 	}
@@ -105,6 +127,8 @@ func (z *Float) Mul(x, y *Float) *Float {
 }
 
 func (z *Float) Neg(x *Float) *Float {
+	z.init()
+	x.init()
 	mpfr.Neg(z.ptr, x.ptr, z.mode)
 	return z
 }
@@ -112,10 +136,14 @@ func (z *Float) Neg(x *Float) *Float {
 // TODO PARSE
 
 func (z *Float) Prec(prec uint) uint {
+	z.init()
 	return z.prec
 }
 
 func (z *Float) Quo(x, y *Float) *Float {
+	z.init()
+	x.init()
+	y.init()
 	if z.prec == 0 {
 		z.prec = max(x.prec, y.prec)
 	}
@@ -133,10 +161,12 @@ func (z *Float) Quo(x, y *Float) *Float {
 // TODO SETMANTEXP
 
 func (z *Float) SetMode(mode stdlib.RoundingMode) {
+	z.init()
 	z.mode = importRoundingMode(mode)
 }
 
 func (z *Float) SetPrec(prec uint) {
+	z.init()
 	mpfr.SetPrec(z.ptr, int(prec))
 	z.prec = prec
 }
@@ -146,12 +176,15 @@ func (z *Float) SetPrec(prec uint) {
 // TODO SETUINT64
 
 func (x *Float) Sign() int {
+	x.init()
 	return mpfr.Sgn(x.ptr)
 }
 
 // TODO SIGNBIT
 
 func (z *Float) Sqrt(x *Float) *Float {
+	z.init()
+	x.init()
 	if z.prec == 0 {
 		z.prec = x.prec
 	}
@@ -165,6 +198,9 @@ func (z *Float) String() string {
 }
 
 func (z *Float) Sub(x, y *Float) *Float {
+	z.init()
+	x.init()
+	y.init()
 	if z.prec == 0 {
 		z.prec = max(x.prec, y.prec)
 	}

@@ -13,6 +13,12 @@ func TestInt(t *testing.T) {
 	fmt.Println(a.String())
 }
 
+// should not explode
+func TestIntZeroValue(t *testing.T) {
+	var a, b Int
+	a.Add(&a, &b)
+}
+
 func BenchmarkInt(b *testing.B) {
 	for b.Loop() {
 		a := NewInt(1000)

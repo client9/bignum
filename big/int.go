@@ -5,22 +5,29 @@ import (
 	"runtime"
 )
 
-// Zero value is *not* ready to use.
-// It must be created by a New function or a Set function.
-// Otherwise it will panic on nil pointer.
 type Int struct {
 	ptr *mpz.Int
 }
 
 func NewInt(x int64) *Int {
-	var n mpz.Int
-	mpz.InitSetSi(&n, int(x))
+	n := new(mpz.Int)
+	mpz.InitSetSi(n, int(x))
 	z := &Int{
-		ptr: &n,
+		ptr: n,
 	}
-	runtime.AddCleanup(z, mpz.Clear, &n)
+	runtime.AddCleanup(z, mpz.Clear, n)
 	return z
 }
+
+func (z *Int) init() {
+	if z.ptr == nil {
+		n := new(mpz.Int)
+		mpz.InitSetSi(n, 0)
+		z.ptr = n
+		runtime.AddCleanup(z, mpz.Clear, n)
+	}
+}
+
 func NewIntTmp(x int64) *Int {
 	var n mpz.Int
 	mpz.InitSetSi(&n, int(x))
@@ -31,15 +38,22 @@ func NewIntTmp(x int64) *Int {
 	return z
 }
 func (z *Int) Clear() {
-	mpz.Clear(z.ptr)
-	z.ptr = nil
+	if z.ptr != nil {
+		mpz.Clear(z.ptr)
+		z.ptr = nil
+	}
 }
 
 func (z *Int) Abs(x *Int) *Int {
+	z.init()
+	x.init()
 	mpz.Abs(z.ptr, x.ptr)
 	return z
 }
 func (z *Int) Add(x, y *Int) *Int {
+	z.init()
+	x.init()
+	y.init()
 	mpz.Add(z.ptr, x.ptr, y.ptr)
 	return z
 }
@@ -55,10 +69,14 @@ func (z *Int) Add(x, y *Int) *Int {
 // TODO BYTES
 
 func (z *Int) Cmp(y *Int) *Int {
+	z.init()
+	y.init()
 	mpz.Cmp(z.ptr, y.ptr)
 	return z
 }
 func (z *Int) CmpAbs(y *Int) *Int {
+	z.init()
+	y.init()
 	mpz.Cmpabs(z.ptr, y.ptr)
 	return z
 }
@@ -67,6 +85,13 @@ func (z *Int) CmpAbs(y *Int) *Int {
 // TODO DIVMOD
 
 func (z *Int) Exp(x, y, m *Int) *Int {
+	z.init()
+	x.init()
+	y.init()
+	if m != nil {
+		// its ok for m to be nil
+		m.init()
+	}
 	if y.Sign() <= 0 {
 		mpz.SetUi(z.ptr, 1)
 		return z
@@ -96,6 +121,9 @@ func (z *Int) Exp(x, y, m *Int) *Int {
 // TODO MODSQRT
 
 func (z *Int) Mul(x, y *Int) *Int {
+	z.init()
+	x.init()
+	y.init()
 	mpz.Mul(z.ptr, x.ptr, y.ptr)
 	return z
 }
@@ -106,6 +134,7 @@ func (z *Int) Mul(x, y *Int) *Int {
 // TODO OR
 
 func (z *Int) ProbablyPrime(n int) bool {
+	z.init()
 	return mpz.ProbabPrimeP(z.ptr, n) == 1
 }
 
@@ -119,20 +148,47 @@ func (z *Int) ProbablyPrime(n int) bool {
 // TODO SETBIT
 // TODO SETBITS
 // TODO SETBYTES
-// TODO SETINT64
+
+func (z *Int) SetInt64(x int64) {
+	if z.ptr == nil {
+		n := new(mpz.Int)
+		mpz.InitSetSi(n, int(x))
+		z.ptr = n
+		runtime.AddCleanup(z, mpz.Clear, n)
+	} else {
+		mpz.SetSi(z.ptr, int(x))
+	}
+}
+
 // TODO SETSTRING
-// TODO SETUINT64
+
+func (z *Int) SetUint64(x uint64) {
+	if z.ptr == nil {
+		n := new(mpz.Int)
+		mpz.InitSetUi(n, uint(x))
+		z.ptr = n
+		runtime.AddCleanup(z, mpz.Clear, n)
+	} else {
+		mpz.SetUi(z.ptr, uint(x))
+	}
+}
 
 func (z *Int) Sign() int {
+	z.init()
 	return mpz.Sgn(z.ptr)
 }
 
 // TODO SQRT
 
 func (z *Int) String() string {
+	z.init()
 	return mpz.GetStr(10, z.ptr)
 }
+
 func (z *Int) Sub(x, y *Int) *Int {
+	z.init()
+	x.init()
+	y.init()
 	mpz.Sub(z.ptr, x.ptr, y.ptr)
 	return z
 }
