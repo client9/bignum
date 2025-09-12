@@ -203,6 +203,9 @@ func TdivR(r *Int, n *Int, d *Int) {
 func TdivQr(q *Int, r *Int, n *Int, d *Int) {
 	C.mpz_tdiv_qr(&q[0], &r[0], &n[0], &d[0])
 }
+func Mod(r *Int, n *Int, d *Int) {
+	C.mpz_mod(&r[0], &n[0], &d[0])
+}
 
 // 5.7 Exponentiation Functions
 func Powm(rop *Int, base *Int, exp *Int, mod *Int) {
@@ -240,6 +243,10 @@ func Gcd(rop *Int, op1 *Int, op2 *Int) {
 	C.mpz_gcd(&rop[0], &op1[0], &op2[0])
 }
 
+func Invert(rop *Int, op1 *Int, op2 *Int) {
+	C.mpz_invert(&rop[0], &op1[0], &op2[0])
+}
+
 // 5.10 Comparison Functions
 func Cmp(op1 *Int, op2 *Int) int {
 	return int(C.mpz_cmp(&op1[0], &op2[0]))
@@ -273,6 +280,22 @@ func Sgn(op *Int) int {
 // 5.11 Logical and Bit Manipulation Functions
 //
 
+func And(rop *Int, op1 *Int, op2 *Int) {
+	C.mpz_and(&rop[0], &op1[0], &op2[0])
+}
+
+func Ior(rop *Int, op1 *Int, op2 *Int) {
+	C.mpz_ior(&rop[0], &op1[0], &op2[0])
+}
+
+func Xor(rop *Int, op1 *Int, op2 *Int) {
+	C.mpz_xor(&rop[0], &op1[0], &op2[0])
+}
+
+func Com(rop *Int, op *Int) {
+	C.mpz_com(&rop[0], &op[0])
+}
+
 //
 // 5.12 Input and Output Functions
 //
@@ -286,6 +309,14 @@ func Sgn(op *Int) int {
 //
 
 // 5.15 Miscellaneous Functions
+func FitsUlongP(op *Int) int {
+	return int(C.mpz_fits_ulong_p(&op[0]))
+}
+
+func FitsSlongP(op *Int) int {
+	return int(C.mpz_fits_slong_p(&op[0]))
+}
+
 func Sizeinbase(op *Int, base int) int {
 	return int(C.mpz_sizeinbase(&op[0], C.int(base)))
 }
