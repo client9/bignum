@@ -71,7 +71,14 @@ func (z *Int) Add(x, y *Int) *Int {
 // TODO APPENDTEXT
 // TODO BINOMIAL -- there is a MPZ function for this
 // TODO BIT
-// TODO BITLEN
+
+func (z *Int) BitLen() int {
+	if z.ptr == nil {
+		return 0
+	}
+	return mpz.Sizeinbase(z.ptr, 2)
+}
+
 // TODO BITS
 // TODO BYTES
 
@@ -99,8 +106,54 @@ func (z *Int) CmpAbs(y *Int) *Int {
 	return z
 }
 
-// TODO DIV
-// TODO DIVMOD
+func (z *Int) Div(x, y *Int) *Int {
+	sgn := y.Sign()
+	if sgn == 0 {
+		panic("division by zero")
+	}
+	if z.ptr == nil {
+		z.init()
+	}
+
+	// TODO: if x or m is unini we can skip steps
+	if x.ptr == nil {
+		x.init()
+	}
+
+	if sgn == 1 {
+		mpz.FdivR(z.ptr, x.ptr, y.ptr)
+	} else {
+		mpz.CdivR(z.ptr, x.ptr, y.ptr)
+	}
+	return z
+}
+
+func (z *Int) DivMod(x, y, m *Int) (*Int, *Int) {
+	// Sign handles uninitialized values so this is ok
+	sgn := y.Sign()
+	if sgn == 0 {
+		panic("division by zero")
+	}
+
+	if z.ptr == nil {
+		z.init()
+	}
+
+	// TODO: if x or m is unini we can skip steps
+	if x.ptr == nil {
+		x.init()
+	}
+	if m.ptr == nil {
+		m.init()
+	}
+
+	if sgn == 1 {
+		mpz.FdivQr(z.ptr, m.ptr, x.ptr, y.ptr)
+	} else {
+		mpz.CdivQr(z.ptr, m.ptr, x.ptr, y.ptr)
+	}
+	return z, m
+}
 
 func (z *Int) Exp(x, y, m *Int) *Int {
 	if z.ptr == nil {
@@ -136,7 +189,7 @@ func (z *Int) Float64() float64 {
 
 // TODO FORMAT
 
-func (z *Int) Gcd(x, y *Int) *Int {
+func (z *Int) GCD(x, y *Int) *Int {
 	if z.ptr == nil {
 		z.init()
 	}
