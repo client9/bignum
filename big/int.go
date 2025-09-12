@@ -1,16 +1,22 @@
 package big
 
 import (
-	"github.com/client9/bignum/mpz"
 	"runtime"
+	"unsafe"
+
+	"github.com/client9/bignum/mpz"
 )
 
+func newIntPtr() mpz.IntPtr {
+	return mpz.IntPtr(unsafe.Pointer(new(mpz.Int)))
+}
+
 type Int struct {
-	ptr *mpz.Int
+	ptr mpz.IntPtr
 }
 
 func NewInt(x int64) *Int {
-	n := new(mpz.Int)
+	n := newIntPtr()
 	mpz.InitSetSi(n, int(x))
 	z := &Int{
 		ptr: n,
@@ -20,14 +26,14 @@ func NewInt(x int64) *Int {
 }
 
 func (z *Int) init() {
-	n := new(mpz.Int)
+	n := newIntPtr()
 	mpz.InitSetSi(n, 0)
 	z.ptr = n
 	runtime.AddCleanup(z, mpz.Clear, n)
 }
 
 func NewIntTmp(x int64) *Int {
-	n := new(mpz.Int)
+	n := newIntPtr()
 	mpz.InitSetSi(n, int(x))
 	z := &Int{
 		ptr: n,
@@ -378,7 +384,7 @@ func (z *Int) Rem(x, y *Int) *Int {
 
 func (z *Int) SetInt64(x int64) {
 	if z.ptr == nil {
-		n := new(mpz.Int)
+		n := newIntPtr()
 		mpz.InitSetSi(n, int(x))
 		z.ptr = n
 		runtime.AddCleanup(z, mpz.Clear, n)
@@ -391,7 +397,7 @@ func (z *Int) SetInt64(x int64) {
 
 func (z *Int) SetUint64(x uint64) {
 	if z.ptr == nil {
-		n := new(mpz.Int)
+		n := newIntPtr()
 		mpz.InitSetUi(n, uint(x))
 		z.ptr = n
 		runtime.AddCleanup(z, mpz.Clear, n)

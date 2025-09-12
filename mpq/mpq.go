@@ -17,6 +17,17 @@ int macro_mpq_cmp_ui(const mpq_t op, unsigned long int num2, unsigned long int d
 int macro_mpq_sgn(const mpq_t op) {
         return mpq_sgn(op);
 }
+
+const mpz_ptr macro_mpq_numref(const mpq_t op) {
+	// cast to mpz_ptr to avoid compiler warnings about const
+	return (mpz_ptr)mpq_numref(op);
+}
+
+const mpz_ptr macro_mpq_denref(const mpq_t op) {
+	// cast to mpz_ptr to avoid compiler warnings about const
+	return (mpz_ptr) mpq_denref(op);
+}
+
 */
 import "C"
 
@@ -26,60 +37,63 @@ import (
 	"github.com/client9/bignum/mpz"
 )
 
-type Rat C.mpq_t
+//type RatPtr C.mpq_t
 
-// used internally to help CGO understand that mpz.Int is the same thing as C.mpz_t
-type ratInt C.mpz_t
+type RatPtr C.mpq_ptr
+type Rat C.mpq_t
 
 //
 // 6.1 Initialization and Assignment Functions
 //
 
-func Init(x *Rat) {
-	C.mpq_init(&x[0])
+func Init(x RatPtr) {
+	C.mpq_init(x)
 }
 
-func Clear(x *Rat) {
-	C.mpq_clear(&x[0])
+func Clear(x RatPtr) {
+	C.mpq_clear(x)
 }
 
-func Set(rop *Rat, op *Rat) {
-	C.mpq_set(&rop[0], &op[0])
+func Set(rop RatPtr, op RatPtr) {
+	C.mpq_set(rop, op)
 }
 
 // TODO mpq_set_z
 
-func SetUi(rop *Rat, op1 uint, op2 uint) {
-	C.mpq_set_ui(&rop[0], C.ulong(op1), C.ulong(op2))
+func SetUi(rop RatPtr, op1 uint, op2 uint) {
+	C.mpq_set_ui(rop, C.ulong(op1), C.ulong(op2))
 }
 
-func SetSi(rop *Rat, op1 int, op2 uint) {
-	C.mpq_set_si(&rop[0], C.long(op1), C.ulong(op2))
+func SetSi(rop RatPtr, op1 int, op2 uint) {
+	C.mpq_set_si(rop, C.long(op1), C.ulong(op2))
 }
 
-func SetStr(rop *Rat, s string, base int) int {
+func SetStr(rop RatPtr, s string, base int) int {
 	cstr := C.CString(s)
-	ret := C.mpq_set_str(&rop[0], cstr, C.int(base))
+	ret := C.mpq_set_str(rop, cstr, C.int(base))
 	C.free(unsafe.Pointer(cstr))
 	return int(ret)
 }
 
-func Swap(rop1 *Rat, rop2 *Rat) {
-	C.mpq_swap(&rop1[0], &rop2[0])
+func Swap(rop1 RatPtr, rop2 RatPtr) {
+	C.mpq_swap(rop1, rop2)
 }
 
 // 6.2 Conversion Functions
 
-func GetD(rop *Rat) float64 {
-	return float64(C.mpq_get_d(&rop[0]))
+func GetD(rop RatPtr) float64 {
+	return float64(C.mpq_get_d(rop))
 }
 
-// TODO mpq_set_d
+func SetD(rop RatPtr, d float64) {
+	C.mpq_set_d(rop, C.double( d))
+}
+
 // TODO mpq_set_f
 
 // GetStr is not part of the GMP library.
-func GetStr(base int, op *Rat) string {
-	p := C.mpq_get_str(nil, C.int(base), &op[0])
+func GetStr(base int, op RatPtr) string {
+	p := C.mpq_get_str(nil, C.int(base), op)
 	if p == nil {
 		return ""
 	}
@@ -92,71 +106,82 @@ func GetStr(base int, op *Rat) string {
 // 6.3 Arithmetic Functions
 //
 
-func Add(rop *Rat, op1 *Rat, op2 *Rat) {
-	C.mpq_add(&rop[0], &op1[0], &op2[0])
+func Add(rop RatPtr, op1 RatPtr, op2 RatPtr) {
+	C.mpq_add(rop, op1, op2)
 }
-func Sub(rop *Rat, op1 *Rat, op2 *Rat) {
-	C.mpq_sub(&rop[0], &op1[0], &op2[0])
+func Sub(rop RatPtr, op1 RatPtr, op2 RatPtr) {
+	C.mpq_sub(rop, op1, op2)
 }
-func Mul(rop *Rat, op1 *Rat, op2 *Rat) {
-	C.mpq_mul(&rop[0], &op1[0], &op2[0])
-}
-
-// TODO mpq_mul_2exp
-
-func Div(rop *Rat, op1 *Rat, op2 *Rat) {
-	C.mpq_div(&rop[0], &op1[0], &op2[0])
+func Mul(rop RatPtr, op1 RatPtr, op2 RatPtr) {
+	C.mpq_mul(rop, op1, op2)
 }
 
 // TODO mpq_mul_2exp
 
-func Neg(rop *Rat, op *Rat) {
-	C.mpq_neg(&rop[0], &op[0])
-}
-func Abs(rop *Rat, op *Rat) {
-	C.mpq_abs(&rop[0], &op[0])
+func Div(rop RatPtr, op1 RatPtr, op2 RatPtr) {
+	C.mpq_div(rop, op1, op2)
 }
 
-func Inv(rop *Rat, op *Rat) {
-	C.mpq_inv(&rop[0], &op[0])
+// TODO mpq_mul_2exp
+
+func Neg(rop RatPtr, op RatPtr) {
+	C.mpq_neg(rop, op)
+}
+func Abs(rop RatPtr, op RatPtr) {
+	C.mpq_abs(rop, op)
 }
 
+func Inv(rop RatPtr, op RatPtr) {
+	C.mpq_inv(rop, op)
+}
+
+//
 // 6.4 Comparison Functions
-func Cmp(op1 *Rat, op2 *Rat) int {
-	return int(C.mpq_cmp(&op1[0], &op2[0]))
+//
+
+func Cmp(op1 RatPtr, op2 RatPtr) int {
+	return int(C.mpq_cmp(op1, op2))
 }
 
-func CmpZ(op1 *Rat, op2 *mpz.Int) int {
-	// since mpz.Int is from a different package, it has a different signature in CGO and complains.
+func CmpZ(op1 RatPtr, op2 *mpz.Int) int {
+	// since mpz.Int is from a different package, it has a different signature so CGO complains.
 	// also the C vs. Go symatics of fixed size array are different so can't use Go-Style casts
 	// have to use unsafe to force it to the right type.
 	//
 	// Hmm actually using mpz_ptr everywhere might be easier.. for another time.
 	//
-	var opint = C.mpz_ptr(unsafe.Pointer(&op2[0]))
-	return int(C.mpq_cmp_z(&op1[0], opint))
+	var opint = C.mpz_ptr(unsafe.Pointer(op2))
+	return int(C.mpq_cmp_z(op1, opint))
 }
 
-func CmpUi(op1 *Rat, num2 uint, den2 uint) int {
-	return int(C.macro_mpq_cmp_ui(&op1[0], C.ulong(num2), C.ulong(den2)))
+func CmpUi(op1 RatPtr, num2 uint, den2 uint) int {
+	return int(C.macro_mpq_cmp_ui(op1, C.ulong(num2), C.ulong(den2)))
 }
 
-func CmpSi(op1 *Rat, num2 int, den2 uint) int {
-	return int(C.macro_mpq_cmp_si(&op1[0], C.long(num2), C.ulong(den2)))
+func CmpSi(op1 RatPtr, num2 int, den2 uint) int {
+	return int(C.macro_mpq_cmp_si(op1, C.long(num2), C.ulong(den2)))
 }
 
-func Sgn(op *Rat) int {
-	return int(C.macro_mpq_sgn(&op[0]))
+func Sgn(op RatPtr) int {
+	return int(C.macro_mpq_sgn(op))
 }
 
-func Equal(op1 *Rat, op2 *Rat) int {
-	return int(C.mpq_equal(&op1[0], &op2[0]))
+func Equal(op1 RatPtr, op2 RatPtr) int {
+	return int(C.mpq_equal(op1, op2))
 }
 
 //
-// 6.5 Applying Integer Functions to Rationals
+// 6.5 Applying Integer Functions to RatPtrionals
 //
-
+/*
+func NumRef(op RatPtr) *mpz.Int {
+	ptr := C.macro_mpq_numref(op)
+	var x mpz.Int
+	return x
+}
+func DenRef(op RatPtr) *Int {	
+}
+*/
 //
 // 6.6 Input and Output Functions
 //  (uses stdio FILE streams)

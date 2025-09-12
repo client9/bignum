@@ -25,97 +25,98 @@ import (
 )
 
 type Int C.mpz_t
+type IntPtr C.mpz_ptr
 
 //
 // 5.1 Initialization Functions
 //
 
-func Init(x *Int) {
-	C.mpz_init(&x[0])
+func Init(x IntPtr) {
+	C.mpz_init(x)
 }
-func Init2(x *Int, n int) {
-	C.mpz_init2(&x[0], C.mp_bitcnt_t(n))
-}
-
-func Clear(x *Int) {
-	C.mpz_clear(&x[0])
+func Init2(x IntPtr, n int) {
+	C.mpz_init2(x, C.mp_bitcnt_t(n))
 }
 
-func Realloc2(x *Int, n int) {
-	C.mpz_realloc2(&x[0], C.mp_bitcnt_t(n))
+func Clear(x IntPtr) {
+	C.mpz_clear(x)
+}
+
+func Realloc2(x IntPtr, n int) {
+	C.mpz_realloc2(x, C.mp_bitcnt_t(n))
 }
 
 // 5.2 Assignment Functions
-func Set(rop *Int, op *Int) {
-	C.mpz_set(&rop[0], &op[0])
+func Set(rop IntPtr, op IntPtr) {
+	C.mpz_set(rop, op)
 }
-func SetUi(rop *Int, op uint) {
-	C.mpz_set_ui(&rop[0], C.ulong(op))
-}
-
-func SetSi(rop *Int, op int) {
-	C.mpz_set_si(&rop[0], C.long(op))
+func SetUi(rop IntPtr, op uint) {
+	C.mpz_set_ui(rop, C.ulong(op))
 }
 
-func SetD(rop *Int, op float64) {
-	C.mpz_set_d(&rop[0], C.double(op))
+func SetSi(rop IntPtr, op int) {
+	C.mpz_set_si(rop, C.long(op))
+}
+
+func SetD(rop IntPtr, op float64) {
+	C.mpz_set_d(rop, C.double(op))
 }
 
 // TODO mpz_set_q --> depends on mpq
 
-func SetStr(rop *Int, s string, base int) int {
+func SetStr(rop IntPtr, s string, base int) int {
 	cstr := C.CString(s)
-	ret := C.mpz_set_str(&rop[0], cstr, C.int(base))
+	ret := C.mpz_set_str(rop, cstr, C.int(base))
 	C.free(unsafe.Pointer(cstr))
 	return int(ret)
 }
 
-func Swap(rop1 *Int, rop2 *Int) {
-	C.mpz_swap(&rop1[0], &rop2[0])
+func Swap(rop1 IntPtr, rop2 IntPtr) {
+	C.mpz_swap(rop1, rop2)
 }
 
 //
 // 5.3 Combined Initization and Assignment Functions
 //
 
-func InitSet(rop *Int, op *Int) {
-	C.mpz_init_set(&rop[0], &op[0])
+func InitSet(rop IntPtr, op IntPtr) {
+	C.mpz_init_set(rop, op)
 }
-func InitSetUi(rop *Int, op uint) {
-	C.mpz_init_set_ui(&rop[0], C.ulong(op))
-}
-
-func InitSetSi(rop *Int, op int) {
-	C.mpz_init_set_si(&rop[0], C.long(op))
+func InitSetUi(rop IntPtr, op uint) {
+	C.mpz_init_set_ui(rop, C.ulong(op))
 }
 
-func InitSetD(rop *Int, op float64) {
-	C.mpz_init_set_d(&rop[0], C.double(op))
+func InitSetSi(rop IntPtr, op int) {
+	C.mpz_init_set_si(rop, C.long(op))
 }
-func InitSetStr(rop *Int, s string, base int) int {
+
+func InitSetD(rop IntPtr, op float64) {
+	C.mpz_init_set_d(rop, C.double(op))
+}
+func InitSetStr(rop IntPtr, s string, base int) int {
 	cstr := C.CString(s)
-	ret := C.mpz_init_set_str(&rop[0], cstr, C.int(base))
+	ret := C.mpz_init_set_str(rop, cstr, C.int(base))
 	C.free(unsafe.Pointer(cstr))
 	return int(ret)
 }
 
 // 5.4 Conversion Functions
-func GetUi(rop *Int) uint {
-	return uint(C.mpz_get_ui(&rop[0]))
+func GetUi(rop IntPtr) uint {
+	return uint(C.mpz_get_ui(rop))
 }
 
-func GetSi(rop *Int) int {
-	return int(C.mpz_get_si(&rop[0]))
+func GetSi(rop IntPtr) int {
+	return int(C.mpz_get_si(rop))
 }
 
-func GetD(rop *Int) float64 {
-	return float64(C.mpz_get_d(&rop[0]))
+func GetD(rop IntPtr) float64 {
+	return float64(C.mpz_get_d(rop))
 }
 
 // TODO mpz_get_d_2exp
 
-func GetStr(base int, op *Int) string {
-	p := C.mpz_get_str(nil, C.int(base), &op[0])
+func GetStr(base int, op IntPtr) string {
+	p := C.mpz_get_str(nil, C.int(base), op)
 	s := C.GoString(p)
 	C.free(unsafe.Pointer(p))
 	return s
@@ -125,175 +126,175 @@ func GetStr(base int, op *Int) string {
 // 5.5 Arithmetic Functions
 //
 
-func Add(rop *Int, op1 *Int, op2 *Int) {
-	C.mpz_add(&rop[0], &op1[0], &op2[0])
+func Add(rop IntPtr, op1 IntPtr, op2 IntPtr) {
+	C.mpz_add(rop, op1, op2)
 }
-func AddUi(rop *Int, op1 *Int, op2 uint) {
-	C.mpz_add_ui(&rop[0], &op1[0], C.ulong(op2))
+func AddUi(rop IntPtr, op1 IntPtr, op2 uint) {
+	C.mpz_add_ui(rop, op1, C.ulong(op2))
 }
-func Sub(rop *Int, op1 *Int, op2 *Int) {
-	C.mpz_sub(&rop[0], &op1[0], &op2[0])
+func Sub(rop IntPtr, op1 IntPtr, op2 IntPtr) {
+	C.mpz_sub(rop, op1, op2)
 }
-func SubUi(rop *Int, op1 *Int, op2 uint) {
-	C.mpz_sub_ui(&rop[0], &op1[0], C.ulong(op2))
+func SubUi(rop IntPtr, op1 IntPtr, op2 uint) {
+	C.mpz_sub_ui(rop, op1, C.ulong(op2))
 }
-func UiSub(rop *Int, op1 uint, op2 *Int) {
-	C.mpz_ui_sub(&rop[0], C.ulong(op1), &op2[0])
+func UiSub(rop IntPtr, op1 uint, op2 IntPtr) {
+	C.mpz_ui_sub(rop, C.ulong(op1), op2)
 }
-func Mul(rop *Int, op1 *Int, op2 *Int) {
-	C.mpz_mul(&rop[0], &op1[0], &op2[0])
+func Mul(rop IntPtr, op1 IntPtr, op2 IntPtr) {
+	C.mpz_mul(rop, op1, op2)
 }
-func MulSi(rop *Int, op1 *Int, op2 int) {
-	C.mpz_mul_si(&rop[0], &op1[0], C.long(op2))
+func MulSi(rop IntPtr, op1 IntPtr, op2 int) {
+	C.mpz_mul_si(rop, op1, C.long(op2))
 }
-func MulUi(rop *Int, op1 *Int, op2 uint) {
-	C.mpz_mul_ui(&rop[0], &op1[0], C.ulong(op2))
+func MulUi(rop IntPtr, op1 IntPtr, op2 uint) {
+	C.mpz_mul_ui(rop, op1, C.ulong(op2))
 }
-func AddMul(rop *Int, op1 *Int, op2 *Int) {
-	C.mpz_addmul(&rop[0], &op1[0], &op2[0])
+func AddMul(rop IntPtr, op1 IntPtr, op2 IntPtr) {
+	C.mpz_addmul(rop, op1, op2)
 }
-func AddmulUi(rop *Int, op1 *Int, op2 uint) {
-	C.mpz_addmul_ui(&rop[0], &op1[0], C.ulong(op2))
+func AddmulUi(rop IntPtr, op1 IntPtr, op2 uint) {
+	C.mpz_addmul_ui(rop, op1, C.ulong(op2))
 }
-func SubMul(rop *Int, op1 *Int, op2 *Int) {
-	C.mpz_submul(&rop[0], &op1[0], &op2[0])
+func SubMul(rop IntPtr, op1 IntPtr, op2 IntPtr) {
+	C.mpz_submul(rop, op1, op2)
 }
-func SubmulUi(rop *Int, op1 *Int, op2 uint) {
-	C.mpz_submul_ui(&rop[0], &op1[0], C.ulong(op2))
+func SubmulUi(rop IntPtr, op1 IntPtr, op2 uint) {
+	C.mpz_submul_ui(rop, op1, C.ulong(op2))
 }
 
 // TODO mpz_mul_2exp
 
-func Neg(rop *Int, op *Int) {
-	C.mpz_neg(&rop[0], &op[0])
+func Neg(rop IntPtr, op IntPtr) {
+	C.mpz_neg(rop, op)
 }
-func Abs(rop *Int, op *Int) {
-	C.mpz_abs(&rop[0], &op[0])
+func Abs(rop IntPtr, op IntPtr) {
+	C.mpz_abs(rop, op)
 }
 
 //
 // 5.6 Division Functions
 //
 
-func CdivQ(q *Int, n *Int, d *Int) {
-	C.mpz_cdiv_q(&q[0], &n[0], &d[0])
+func CdivQ(q IntPtr, n IntPtr, d IntPtr) {
+	C.mpz_cdiv_q(q, n, d)
 }
-func CdivR(r *Int, n *Int, d *Int) {
-	C.mpz_cdiv_r(&r[0], &n[0], &d[0])
+func CdivR(r IntPtr, n IntPtr, d IntPtr) {
+	C.mpz_cdiv_r(r, n, d)
 }
-func CdivQr(q *Int, r *Int, n *Int, d *Int) {
-	C.mpz_cdiv_qr(&q[0], &r[0], &n[0], &d[0])
+func CdivQr(q IntPtr, r IntPtr, n IntPtr, d IntPtr) {
+	C.mpz_cdiv_qr(q, r, n, d)
 }
 
-func FdivQ(q *Int, n *Int, d *Int) {
-	C.mpz_fdiv_q(&q[0], &n[0], &d[0])
+func FdivQ(q IntPtr, n IntPtr, d IntPtr) {
+	C.mpz_fdiv_q(q, n, d)
 }
-func FdivR(r *Int, n *Int, d *Int) {
-	C.mpz_fdiv_r(&r[0], &n[0], &d[0])
+func FdivR(r IntPtr, n IntPtr, d IntPtr) {
+	C.mpz_fdiv_r(r, n, d)
 }
-func FdivQr(q *Int, r *Int, n *Int, d *Int) {
-	C.mpz_fdiv_qr(&q[0], &r[0], &n[0], &d[0])
+func FdivQr(q IntPtr, r IntPtr, n IntPtr, d IntPtr) {
+	C.mpz_fdiv_qr(q, r, n, d)
 }
-func TdivQ(q *Int, n *Int, d *Int) {
-	C.mpz_tdiv_q(&q[0], &n[0], &d[0])
+func TdivQ(q IntPtr, n IntPtr, d IntPtr) {
+	C.mpz_tdiv_q(q, n, d)
 }
-func TdivR(r *Int, n *Int, d *Int) {
-	C.mpz_tdiv_r(&r[0], &n[0], &d[0])
+func TdivR(r IntPtr, n IntPtr, d IntPtr) {
+	C.mpz_tdiv_r(r, n, d)
 }
-func TdivQr(q *Int, r *Int, n *Int, d *Int) {
-	C.mpz_tdiv_qr(&q[0], &r[0], &n[0], &d[0])
+func TdivQr(q IntPtr, r IntPtr, n IntPtr, d IntPtr) {
+	C.mpz_tdiv_qr(q, r, n, d)
 }
-func Mod(r *Int, n *Int, d *Int) {
-	C.mpz_mod(&r[0], &n[0], &d[0])
+func Mod(r IntPtr, n IntPtr, d IntPtr) {
+	C.mpz_mod(r, n, d)
 }
 
 // 5.7 Exponentiation Functions
-func Powm(rop *Int, base *Int, exp *Int, mod *Int) {
-	C.mpz_powm(&rop[0], &base[0], &exp[0], &mod[0])
+func Powm(rop IntPtr, base IntPtr, exp IntPtr, mod IntPtr) {
+	C.mpz_powm(rop, base, exp, mod)
 }
 
-func PowmUi(rop *Int, base *Int, exp uint, mod *Int) {
-	C.mpz_powm_ui(&rop[0], &base[0], C.ulong(exp), &mod[0])
+func PowmUi(rop IntPtr, base IntPtr, exp uint, mod IntPtr) {
+	C.mpz_powm_ui(rop, base, C.ulong(exp), mod)
 }
-func PowmSec(rop *Int, base *Int, exp *Int, mod *Int) {
-	C.mpz_powm_sec(&rop[0], &base[0], &exp[0], &mod[0])
+func PowmSec(rop IntPtr, base IntPtr, exp IntPtr, mod IntPtr) {
+	C.mpz_powm_sec(rop, base, exp, mod)
 }
 
-func PowUi(rop *Int, base *Int, exp uint) {
-	C.mpz_pow_ui(&rop[0], &base[0], C.ulong(exp))
+func PowUi(rop IntPtr, base IntPtr, exp uint) {
+	C.mpz_pow_ui(rop, base, C.ulong(exp))
 }
-func UiPowUi(rop *Int, base uint, exp uint) {
-	C.mpz_ui_pow_ui(&rop[0], C.ulong(exp), C.ulong(exp))
+func UiPowUi(rop IntPtr, base uint, exp uint) {
+	C.mpz_ui_pow_ui(rop, C.ulong(exp), C.ulong(exp))
 }
 
 //
 // 5.8 Root Extraction Functions
 //
 
-func Sqrt(rop *Int, op *Int) {
-	C.mpz_sqrt(&rop[0], &op[0])
+func Sqrt(rop IntPtr, op IntPtr) {
+	C.mpz_sqrt(rop, op)
 }
 
 // 5.9 Number Theoretic Functions
-func ProbabPrimeP(n *Int, reps int) int {
-	return int(C.mpz_probab_prime_p(&n[0], C.int(reps)))
+func ProbabPrimeP(n IntPtr, reps int) int {
+	return int(C.mpz_probab_prime_p(n, C.int(reps)))
 }
 
-func Gcd(rop *Int, op1 *Int, op2 *Int) {
-	C.mpz_gcd(&rop[0], &op1[0], &op2[0])
+func Gcd(rop IntPtr, op1 IntPtr, op2 IntPtr) {
+	C.mpz_gcd(rop, op1, op2)
 }
 
-func Invert(rop *Int, op1 *Int, op2 *Int) {
-	C.mpz_invert(&rop[0], &op1[0], &op2[0])
+func Invert(rop IntPtr, op1 IntPtr, op2 IntPtr) {
+	C.mpz_invert(rop, op1, op2)
 }
 
 // 5.10 Comparison Functions
-func Cmp(op1 *Int, op2 *Int) int {
-	return int(C.mpz_cmp(&op1[0], &op2[0]))
+func Cmp(op1 IntPtr, op2 IntPtr) int {
+	return int(C.mpz_cmp(op1, op2))
 }
-func CmpD(op1 *Int, op2 float64) int {
-	return int(C.mpz_cmp_d(&op1[0], C.double(op2)))
+func CmpD(op1 IntPtr, op2 float64) int {
+	return int(C.mpz_cmp_d(op1, C.double(op2)))
 }
-func CmpSi(op1 *Int, op2 int) int {
-	return int(C.macro_mpz_cmp_si(&op1[0], C.long(op2)))
+func CmpSi(op1 IntPtr, op2 int) int {
+	return int(C.macro_mpz_cmp_si(op1, C.long(op2)))
 }
-func CmpUi(op1 *Int, op2 uint) int {
-	return int(C.macro_mpz_cmp_ui(&op1[0], C.ulong(op2)))
-}
-
-func Cmpabs(op1 *Int, op2 *Int) int {
-	return int(C.mpz_cmp(&op1[0], &op2[0]))
+func CmpUi(op1 IntPtr, op2 uint) int {
+	return int(C.macro_mpz_cmp_ui(op1, C.ulong(op2)))
 }
 
-func CmpabsD(op1 *Int, op2 float64) int {
-	return int(C.mpz_cmpabs_d(&op1[0], C.double(op2)))
+func Cmpabs(op1 IntPtr, op2 IntPtr) int {
+	return int(C.mpz_cmp(op1, op2))
 }
 
-func CmpabsUi(op1 *Int, op2 uint) int {
-	return int(C.mpz_cmpabs_ui(&op1[0], C.ulong(op2)))
+func CmpabsD(op1 IntPtr, op2 float64) int {
+	return int(C.mpz_cmpabs_d(op1, C.double(op2)))
 }
-func Sgn(op *Int) int {
-	return int(C.macro_mpz_sgn(&op[0]))
+
+func CmpabsUi(op1 IntPtr, op2 uint) int {
+	return int(C.mpz_cmpabs_ui(op1, C.ulong(op2)))
+}
+func Sgn(op IntPtr) int {
+	return int(C.macro_mpz_sgn(op))
 }
 
 //
 // 5.11 Logical and Bit Manipulation Functions
 //
 
-func And(rop *Int, op1 *Int, op2 *Int) {
-	C.mpz_and(&rop[0], &op1[0], &op2[0])
+func And(rop IntPtr, op1 IntPtr, op2 IntPtr) {
+	C.mpz_and(rop, op1, op2)
 }
 
-func Ior(rop *Int, op1 *Int, op2 *Int) {
-	C.mpz_ior(&rop[0], &op1[0], &op2[0])
+func Ior(rop IntPtr, op1 IntPtr, op2 IntPtr) {
+	C.mpz_ior(rop, op1, op2)
 }
 
-func Xor(rop *Int, op1 *Int, op2 *Int) {
-	C.mpz_xor(&rop[0], &op1[0], &op2[0])
+func Xor(rop IntPtr, op1 IntPtr, op2 IntPtr) {
+	C.mpz_xor(rop, op1, op2)
 }
 
-func Com(rop *Int, op *Int) {
-	C.mpz_com(&rop[0], &op[0])
+func Com(rop IntPtr, op IntPtr) {
+	C.mpz_com(rop, op)
 }
 
 //
@@ -305,26 +306,26 @@ func Com(rop *Int, op *Int) {
 //
 
 //
-// 5.14 Integer Import and Export
+// 5.14 IntPtreger Import and Export
 //
 
 // 5.15 Miscellaneous Functions
-func FitsUlongP(op *Int) int {
-	return int(C.mpz_fits_ulong_p(&op[0]))
+func FitsUlongP(op IntPtr) int {
+	return int(C.mpz_fits_ulong_p(op))
 }
 
-func FitsSlongP(op *Int) int {
-	return int(C.mpz_fits_slong_p(&op[0]))
+func FitsSlongP(op IntPtr) int {
+	return int(C.mpz_fits_slong_p(op))
 }
 
-func Sizeinbase(op *Int, base int) int {
-	return int(C.mpz_sizeinbase(&op[0], C.int(base)))
+func Sizeinbase(op IntPtr, base int) int {
+	return int(C.mpz_sizeinbase(op, C.int(base)))
 }
 
 //
 // 5.16 Special Functions
 //
 
-func Size(op *Int) int {
-	return int(C.mpz_size(&op[0]))
+func Size(op IntPtr) int {
+	return int(C.mpz_size(op))
 }

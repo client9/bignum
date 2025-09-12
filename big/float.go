@@ -3,12 +3,17 @@ package big
 import (
 	stdlib "math/big"
 	"runtime"
+	"unsafe"
 
 	"github.com/client9/bignum/mpfr"
 )
 
+func newFloatPtr() mpfr.FloatPtr {
+	return mpfr.FloatPtr(unsafe.Pointer(new(mpfr.Float)))
+}
+
 type Float struct {
-	ptr *mpfr.Float
+	ptr mpfr.FloatPtr
 
 	// TODO: storing prec and mode natively takes 16 bytes on 64-bit platforms
 	//   * No need for 64-bit values
@@ -20,14 +25,14 @@ type Float struct {
 }
 
 func NewFloat(x float64) *Float {
-	var n mpfr.Float
-	mpfr.InitSetD(&n, x, mpfr.RNDN)
+	n := newFloatPtr()
+	mpfr.InitSetD(n, x, mpfr.RNDN)
 	z := &Float{
-		ptr:  &n,
+		ptr:  n,
 		prec: 0,
 		mode: 0,
 	}
-	runtime.AddCleanup(z, mpfr.Clear, &n)
+	runtime.AddCleanup(z, mpfr.Clear, n)
 	return z
 }
 
@@ -35,7 +40,7 @@ func NewFloat(x float64) *Float {
 
 func (z *Float) init() {
 	if z.ptr == nil {
-		n := new(mpfr.Float)
+		n := newFloatPtr()
 		mpfr.InitSetD(n, 0, mpfr.RNDN)
 		z.ptr = n
 		runtime.AddCleanup(z, mpfr.Clear, n)
@@ -215,7 +220,7 @@ func (z *Float) Quo(x, y *Float) *Float {
 
 func (z *Float) SetFloat64(d float64) {
 	if z.ptr == nil {
-		n := new(mpfr.Float)
+		n := newFloatPtr()
 		mpfr.InitSetD(n, d, mpfr.RNDN)
 		z.ptr = n
 		runtime.AddCleanup(z, mpfr.Clear, n)
@@ -239,7 +244,7 @@ func (z *Float) SetInf(signbit bool) {
 
 func (z *Float) SetInt64(d int64) {
 	if z.ptr == nil {
-		n := new(mpfr.Float)
+		n := newFloatPtr()
 		mpfr.InitSetSi(n, d, mpfr.RNDN)
 		z.ptr = n
 		runtime.AddCleanup(z, mpfr.Clear, n)
@@ -271,7 +276,7 @@ func (z *Float) SetPrec(prec uint) {
 
 func (z *Float) SetUnt64(d uint64) {
 	if z.ptr == nil {
-		n := new(mpfr.Float)
+		n := newFloatPtr()
 		mpfr.InitSetUi(n, d, mpfr.RNDN)
 		z.ptr = n
 		runtime.AddCleanup(z, mpfr.Clear, n)
