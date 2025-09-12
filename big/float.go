@@ -42,8 +42,12 @@ func (z *Float) init() {
 	}
 }
 func (z *Float) Abs(x *Float) *Float {
-	z.init()
-	x.init()
+	if z.ptr == nil {
+		z.init()
+	}
+	if x.ptr == nil {
+		x.init()
+	}
 	mpfr.Abs(z.ptr, x.ptr, z.mode)
 	return z
 }
@@ -51,9 +55,15 @@ func (z *Float) Abs(x *Float) *Float {
 // TODO ACC
 
 func (z *Float) Add(x, y *Float) *Float {
-	z.init()
-	x.init()
-	y.init()
+	if z.ptr == nil {
+		z.init()
+	}
+	if x.ptr == nil {
+		x.init()
+	}
+	if y.ptr == nil {
+		y.init()
+	}
 	if z.prec == 0 {
 		z.prec = max(x.prec, y.prec)
 	}
@@ -76,19 +86,27 @@ func (z *Float) Clear() {
 }
 
 func (x *Float) Cmp(y *Float) int {
-	x.init()
-	y.init()
+	if x.ptr == nil {
+		x.init()
+	}
+	if y.ptr == nil {
+		y.init()
+	}
 	return mpfr.Cmp(x.ptr, y.ptr)
 }
 
 // TODO COPY
 
 func (z *Float) Float32() float32 {
-	z.init()
+	if z.ptr == nil {
+		return 0.0
+	}
 	return mpfr.GetFlt(z.ptr, z.mode)
 }
 func (z *Float) Float64() float64 {
-	z.init()
+	if z.ptr == nil {
+		return 0.0
+	}
 	return mpfr.GetD(z.ptr, z.mode)
 }
 
@@ -97,28 +115,58 @@ func (z *Float) Float64() float64 {
 // TODO GOBENCODE
 
 func (z *Float) Int() int {
-	z.init()
+	if z.ptr == nil {
+		return 0
+	}
 	return int(mpfr.GetSi(z.ptr, z.mode))
 }
 func (z *Float) Int64() int64 {
-	z.init()
+	if z.ptr == nil {
+		return 0
+	}
 	return int64(mpfr.GetSi(z.ptr, z.mode))
 }
 
-// TODO ISINF
-// TODO ISINT
+func (z *Float) IsInf() bool {
+	if z.ptr == nil {
+		return false
+	}
+	return mpfr.InfP(z.ptr) == 1
+}
+
+/*
+func (z *Float) IsInt() bool {
+	if z.ptr == nil {
+		return true
+	}
+	return mpfr.GetSi(z.ptr) == 1
+}
+*/
 // TODO MANTEXP
 // TODO MARSHALTEXT
-// TODO MINPREC
+
+func (z *Float) MinPrec() uint {
+	if z.ptr == nil {
+		return 0
+	}
+	// doesnt matter if z is initialized
+	return mpfr.MinPrec(z.ptr)
+}
 
 func (z *Float) Mode() stdlib.RoundingMode {
-	z.init()
+	// doesnt matter if z is initialized
 	return exportRoundingMode(z.mode)
 }
 func (z *Float) Mul(x, y *Float) *Float {
-	z.init()
-	x.init()
-	y.init()
+	if z.ptr == nil {
+		z.init()
+	}
+	if x.ptr == nil {
+		x.init()
+	}
+	if y.ptr == nil {
+		y.init()
+	}
 	if z.prec == 0 {
 		z.prec = max(x.prec, y.prec)
 	}
@@ -127,8 +175,12 @@ func (z *Float) Mul(x, y *Float) *Float {
 }
 
 func (z *Float) Neg(x *Float) *Float {
-	z.init()
-	x.init()
+	if z.ptr == nil {
+		z.init()
+	}
+	if x.ptr == nil {
+		x.init()
+	}
 	mpfr.Neg(z.ptr, x.ptr, z.mode)
 	return z
 }
@@ -136,14 +188,20 @@ func (z *Float) Neg(x *Float) *Float {
 // TODO PARSE
 
 func (z *Float) Prec(prec uint) uint {
-	z.init()
+	// doesn't matter if z is initialized or not
 	return z.prec
 }
 
 func (z *Float) Quo(x, y *Float) *Float {
-	z.init()
-	x.init()
-	y.init()
+	if z.ptr == nil {
+		z.init()
+	}
+	if x.ptr == nil {
+		x.init()
+	}
+	if y.ptr == nil {
+		y.init()
+	}
 	if z.prec == 0 {
 		z.prec = max(x.prec, y.prec)
 	}
@@ -154,37 +212,97 @@ func (z *Float) Quo(x, y *Float) *Float {
 // TODO RAT
 // TODO SCAN
 // TODO SET
-// TODO SETFLOAT64
-// TODO SETINF
+
+func (z *Float) SetFloat64(d float64) {
+	if z.ptr == nil {
+		n := new(mpfr.Float)
+		mpfr.InitSetD(n, d, mpfr.RNDN)
+		z.ptr = n
+		runtime.AddCleanup(z, mpfr.Clear, n)
+		return
+	}
+	mpfr.SetD(z.ptr, d, z.mode)
+}
+
+func (z *Float) SetInf(signbit bool) {
+	if z.ptr == nil {
+		z.init()
+	}
+	if signbit {
+		mpfr.SetInf(z.ptr, 1)
+	} else {
+		mpfr.SetInf(z.ptr, 0)
+	}
+}
+
 // TODO SETINT
-// TODO SETINT64
+
+func (z *Float) SetInt64(d int64) {
+	if z.ptr == nil {
+		n := new(mpfr.Float)
+		mpfr.InitSetSi(n, d, mpfr.RNDN)
+		z.ptr = n
+		runtime.AddCleanup(z, mpfr.Clear, n)
+		return
+	}
+
+	mpfr.SetSi(z.ptr, d, z.mode)
+}
+
 // TODO SETMANTEXP
 
 func (z *Float) SetMode(mode stdlib.RoundingMode) {
-	z.init()
+	if z.ptr == nil {
+		z.init()
+	}
 	z.mode = importRoundingMode(mode)
 }
 
 func (z *Float) SetPrec(prec uint) {
-	z.init()
+	if z.ptr == nil {
+		z.init()
+	}
 	mpfr.SetPrec(z.ptr, int(prec))
 	z.prec = prec
 }
 
 // TODO SETRAT
 // TODO SETSTRING
-// TODO SETUINT64
+
+func (z *Float) SetUnt64(d uint64) {
+	if z.ptr == nil {
+		n := new(mpfr.Float)
+		mpfr.InitSetUi(n, d, mpfr.RNDN)
+		z.ptr = n
+		runtime.AddCleanup(z, mpfr.Clear, n)
+		return
+	}
+
+	mpfr.SetUi(z.ptr, d, z.mode)
+}
 
 func (x *Float) Sign() int {
-	x.init()
+	if x.ptr == nil {
+		return 0
+	}
 	return mpfr.Sgn(x.ptr)
 }
 
-// TODO SIGNBIT
+func (z *Float) Signbit() bool {
+	if z.ptr == nil {
+		return false
+	}
+	return 1 == mpfr.Signbit(z.ptr)
+}
 
 func (z *Float) Sqrt(x *Float) *Float {
-	z.init()
-	x.init()
+	if z.ptr == nil {
+		z.init()
+	}
+	if x.ptr == nil {
+		x.init()
+	}
+
 	if z.prec == 0 {
 		z.prec = x.prec
 	}
@@ -193,14 +311,23 @@ func (z *Float) Sqrt(x *Float) *Float {
 }
 
 func (z *Float) String() string {
+	if z.ptr == nil {
+		return ""
+	}
 	// matches Go
 	return mpfr.Sprintf3("%.10R*g", z.mode, z.ptr)
 }
 
 func (z *Float) Sub(x, y *Float) *Float {
-	z.init()
-	x.init()
-	y.init()
+	if z.ptr == nil {
+		z.init()
+	}
+	if x.ptr == nil {
+		x.init()
+	}
+	if y.ptr == nil {
+		y.init()
+	}
 	if z.prec == 0 {
 		z.prec = max(x.prec, y.prec)
 	}
@@ -209,7 +336,14 @@ func (z *Float) Sub(x, y *Float) *Float {
 }
 
 // TODO TEXT
-// TODO UINT64
+
+func (z *Float) Unt64() uint64 {
+	if z.ptr == nil {
+		return 0
+	}
+	return uint64(mpfr.GetUi(z.ptr, z.mode))
+}
+
 // TODO UNMARSHALTEXT
 
 func max(a, b uint) uint {
