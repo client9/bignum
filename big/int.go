@@ -20,12 +20,10 @@ func NewInt(x int64) *Int {
 }
 
 func (z *Int) init() {
-	if z.ptr == nil {
-		n := new(mpz.Int)
-		mpz.InitSetSi(n, 0)
-		z.ptr = n
-		runtime.AddCleanup(z, mpz.Clear, n)
-	}
+	n := new(mpz.Int)
+	mpz.InitSetSi(n, 0)
+	z.ptr = n
+	runtime.AddCleanup(z, mpz.Clear, n)
 }
 
 func NewIntTmp(x int64) *Int {
@@ -34,7 +32,6 @@ func NewIntTmp(x int64) *Int {
 	z := &Int{
 		ptr: n,
 	}
-	//runtime.AddCleanup(z, mpz.Clear, n)
 	return z
 }
 func (z *Int) Clear() {
@@ -45,39 +42,59 @@ func (z *Int) Clear() {
 }
 
 func (z *Int) Abs(x *Int) *Int {
-	z.init()
-	x.init()
+	if z.ptr == nil {
+		z.init()
+	}
+	if x.ptr == nil {
+		x.init()
+	}
 	mpz.Abs(z.ptr, x.ptr)
 	return z
 }
 
 func (z *Int) Add(x, y *Int) *Int {
-	z.init()
-	x.init()
-	y.init()
+	if z.ptr == nil {
+		z.init()
+	}
+	if x.ptr == nil {
+		x.init()
+	}
+	if y.ptr == nil {
+		y.init()
+	}
 	mpz.Add(z.ptr, x.ptr, y.ptr)
 	return z
 }
 
-// TODO ANDNOT
+// TODO ANDNOT -- write C so we don't make two round trips.
 // TODO APPEND
 // TODO APPENDTEXT
-// TODO BINOMIAL
+// TODO BINOMIAL -- there is a MPZ function for this
 // TODO BIT
 // TODO BITLEN
 // TODO BITS
 // TODO BYTES
 
 func (z *Int) Cmp(y *Int) *Int {
-	z.init()
-	y.init()
+	if z.ptr == nil {
+		z.init()
+	}
+	if y.ptr == nil {
+		y.init()
+	}
+
 	mpz.Cmp(z.ptr, y.ptr)
 	return z
 }
 
 func (z *Int) CmpAbs(y *Int) *Int {
-	z.init()
-	y.init()
+	if z.ptr == nil {
+		z.init()
+	}
+	if y.ptr == nil {
+		y.init()
+	}
+
 	mpz.Cmpabs(z.ptr, y.ptr)
 	return z
 }
@@ -86,9 +103,12 @@ func (z *Int) CmpAbs(y *Int) *Int {
 // TODO DIVMOD
 
 func (z *Int) Exp(x, y, m *Int) *Int {
-	z.init()
-	x.init()
-	y.init()
+	if z.ptr == nil {
+		z.init()
+	}
+	if x.ptr == nil {
+		x.init()
+	}
 	//
 	// it's ok for m to be nil or uninitialized
 	//
@@ -117,9 +137,15 @@ func (z *Int) Float64() float64 {
 // TODO FORMAT
 
 func (z *Int) Gcd(x, y *Int) *Int {
-	z.init()
-	x.init()
-	y.init()
+	if z.ptr == nil {
+		z.init()
+	}
+	if x.ptr == nil {
+		x.init()
+	}
+	if y.ptr == nil {
+		y.init()
+	}
 	mpz.Gcd(z.ptr, x.ptr, y.ptr)
 	return z
 }
@@ -153,74 +179,123 @@ func (z *Int) IsUint64() bool {
 // TODO MARSHALTEXT
 
 func (z *Int) Mod(x, y *Int) *Int {
-	z.init()
-	x.init()
-	y.init()
+	if z.ptr == nil {
+		z.init()
+	}
+	if x.ptr == nil {
+		x.init()
+	}
+	if y.ptr == nil {
+		y.init()
+	}
 	mpz.Mod(z.ptr, x.ptr, y.ptr)
 	return z
 }
 
 func (z *Int) ModInverse(x, y *Int) *Int {
-	z.init()
-	x.init()
-	y.init()
+	if z.ptr == nil {
+		z.init()
+	}
+	if x.ptr == nil {
+		x.init()
+	}
+	if y.ptr == nil {
+		y.init()
+	}
 	mpz.Invert(z.ptr, x.ptr, y.ptr)
 	return z
 }
 
 // TODO MODSQRT
 
+// TODO: if any are uninitialized, we can return 0
 func (z *Int) Mul(x, y *Int) *Int {
-	z.init()
-	x.init()
-	y.init()
+	if z.ptr == nil {
+		z.init()
+	}
+	if x.ptr == nil {
+		x.init()
+	}
+	if y.ptr == nil {
+		y.init()
+	}
 	mpz.Mul(z.ptr, x.ptr, y.ptr)
 	return z
 }
 
 // TODO MULRANGE
-// TODO NEG
 
+// TODO: Whats Neg(0), if 0, then we can inline
 func (z *Int) Neg(x *Int) *Int {
-	z.init()
-	x.init()
+	if z.ptr == nil {
+		z.init()
+	}
+	if x.ptr == nil {
+		x.init()
+	}
 	mpz.Neg(z.ptr, x.ptr)
 	return z
 }
 
 func (z *Int) Not(x *Int) *Int {
-	z.init()
-	x.init()
+	if z.ptr == nil {
+		z.init()
+	}
+	if x.ptr == nil {
+		x.init()
+	}
 	mpz.Com(z.ptr, x.ptr)
 	return z
 }
 
 func (z *Int) Or(x, y *Int) *Int {
-	z.init()
-	x.init()
-	y.init()
+	if z.ptr == nil {
+		z.init()
+	}
+	if x.ptr == nil {
+		x.init()
+	}
+	if y.ptr == nil {
+		y.init()
+	}
 	mpz.Ior(z.ptr, x.ptr, y.ptr)
 	return z
 }
 
 func (z *Int) ProbablyPrime(n int) bool {
-	z.init()
+	if z.ptr == nil {
+		return false
+	}
 	return mpz.ProbabPrimeP(z.ptr, n) == 1
 }
 
 func (z *Int) Quo(x, y *Int) *Int {
-	z.init()
-	x.init()
-	y.init()
+	if z.ptr == nil {
+		z.init()
+	}
+	if x.ptr == nil {
+		x.init()
+	}
+	if y.ptr == nil {
+		y.init()
+	}
 	mpz.TdivQ(z.ptr, x.ptr, y.ptr)
 	return z
 }
 
 func (z *Int) QuoRem(x, y, r *Int) (*Int, *Int) {
-	z.init()
-	x.init()
-	y.init()
-	r.init()
+	if z.ptr == nil {
+		z.init()
+	}
+	if x.ptr == nil {
+		x.init()
+	}
+	if y.ptr == nil {
+		y.init()
+	}
+	if r.ptr == nil {
+		r.init()
+	}
 	mpz.TdivQr(z.ptr, r.ptr, x.ptr, y.ptr)
 	return z, r
 }
@@ -228,9 +303,15 @@ func (z *Int) QuoRem(x, y, r *Int) (*Int, *Int) {
 // TODO RAND
 
 func (z *Int) Rem(x, y *Int) *Int {
-	z.init()
-	x.init()
-	y.init()
+	if z.ptr == nil {
+		z.init()
+	}
+	if x.ptr == nil {
+		x.init()
+	}
+	if y.ptr == nil {
+		y.init()
+	}
 	mpz.TdivR(z.ptr, x.ptr, y.ptr)
 	return z
 }
@@ -274,21 +355,33 @@ func (z *Int) Sign() int {
 }
 
 func (z *Int) Sqrt(x *Int) *Int {
-	z.init()
-	x.init()
+	if z.ptr == nil {
+		z.init()
+	}
+	if x.ptr == nil {
+		x.init()
+	}
 	mpz.Sqrt(z.ptr, x.ptr)
 	return z
 }
 
 func (z *Int) String() string {
-	z.init()
+	if z.ptr == nil {
+		return ""
+	}
 	return mpz.GetStr(10, z.ptr)
 }
 
 func (z *Int) Sub(x, y *Int) *Int {
-	z.init()
-	x.init()
-	y.init()
+	if z.ptr == nil {
+		z.init()
+	}
+	if x.ptr == nil {
+		x.init()
+	}
+	if y.ptr == nil {
+		y.init()
+	}
 	mpz.Sub(z.ptr, x.ptr, y.ptr)
 	return z
 }
@@ -307,9 +400,15 @@ func (z *Int) Uint64() uint64 {
 // TODO UNMARSHALTEXT
 
 func (z *Int) Xor(x, y *Int) *Int {
-	z.init()
-	x.init()
-	y.init()
+	if z.ptr == nil {
+		z.init()
+	}
+	if x.ptr == nil {
+		x.init()
+	}
+	if y.ptr == nil {
+		y.init()
+	}
 	mpz.Xor(z.ptr, x.ptr, y.ptr)
 	return z
 }
