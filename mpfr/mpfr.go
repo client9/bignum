@@ -310,6 +310,21 @@ func Cmp(op1 *Float, op2 *Float) int {
 func Cmpabs(op1 *Float, op2 *Float) int {
 	return int(C.mpfr_cmpabs(&op1[0], &op2[0]))
 }
+func NanP(op *Float) int {
+	return int(C.mpfr_nan_p(&op[0]))
+}
+func InfP(op *Float) int {
+	return int(C.mpfr_inf_p(&op[0]))
+}
+func NumberP(op *Float) int {
+	return int(C.mpfr_number_p(&op[0]))
+}
+func ZeroP(op *Float) int {
+	return int(C.mpfr_zero_p(&op[0]))
+}
+func RegularP(op *Float) int {
+	return int(C.mpfr_regular_p(&op[0]))
+}
 func Sgn(op *Float) int {
 	return int(C.mpfr_sgn(&op[0]))
 }
@@ -546,7 +561,19 @@ func RintTrunc(rop *Float, op *Float, rnd RoundMode) int {
 	return int(C.mpfr_rint_trunc(&rop[0], &op[0], C.mpfr_rnd_t(rnd)))
 }
 
+// 5.11 Rounding-Related Functions
+func MinPrec(x *Float) uint {
+	return uint(mpfr_min_prec(&x.ptr))
+}
+
+//
 // 5.12 Miscellaneous Functions
+//
+
+func Signbit(op *Float) int {
+	return int(C.mpfr_signbit(&op[0]))
+}
+
 func GetVersion() string {
 	p := C.mpfr_get_version()
 	s := C.GoString(p)
