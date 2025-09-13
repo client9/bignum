@@ -103,15 +103,16 @@ func (x *Rat) Cmp(y *Rat) *Rat {
 	mpq.Cmp(x.ptr, y.ptr)
 	return x
 }
-
-/*
-	func (z *Rat) Denom() *Int {
-		if z.ptr == nil {
-			return NewInt(1)
-		}
-
+func (z *Rat) Denom() *Int {
+	if z.ptr == nil {
+		return NewInt(1)
+	}
+	// Do not set up Cleanup/Finalizer
+	return &Int{
+		ptr: mpq.DenRef(z.ptr),
+	}
 }
-*/
+
 func (z *Rat) Float32() float32 {
 	// not f32 support in mpq
 	return float32(z.Float64())
@@ -156,7 +157,16 @@ func (z *Rat) Neg(x *Rat) *Rat {
 	return z
 }
 
-// TODO NUM
+func (z *Rat) Num() *Int {
+	if z.ptr == nil {
+		return NewInt(0)
+	}
+	// Do not set up Cleanup/Finalizer
+	return &Int{
+		ptr: mpq.NumRef(z.ptr),
+	}
+}
+
 // TODO QUO
 // TOOD RatString
 //    RETURNS PURE INT if denom == 1

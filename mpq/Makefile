@@ -7,3 +7,7 @@ test:
 bench:
 	CGO_ENABLED=1 go test -v -benchmem -bench .
 
+lint:
+	gofmt -w -s *.go
+
+

@@ -86,7 +86,7 @@ func GetD(rop RatPtr) float64 {
 }
 
 func SetD(rop RatPtr, d float64) {
-	C.mpq_set_d(rop, C.double( d))
+	C.mpq_set_d(rop, C.double(d))
 }
 
 // TODO mpq_set_f
@@ -170,18 +170,21 @@ func Equal(op1 RatPtr, op2 RatPtr) int {
 	return int(C.mpq_equal(op1, op2))
 }
 
-//
 // 6.5 Applying Integer Functions to RatPtrionals
-//
-/*
-func NumRef(op RatPtr) *mpz.Int {
+func NumRef(op RatPtr) mpz.IntPtr {
+	// the macro below returns a mpz_ptr which is a mpz.IntPtr
+	// but under CGO (and GO) rules the names have to match exactly
+	//  so we force cast it.
+	//
 	ptr := C.macro_mpq_numref(op)
-	var x mpz.Int
-	return x
+	return mpz.IntPtr(unsafe.Pointer(ptr))
 }
-func DenRef(op RatPtr) *Int {	
+
+func DenRef(op RatPtr) mpz.IntPtr {
+	ptr := C.macro_mpq_denref(op)
+	return mpz.IntPtr(unsafe.Pointer(ptr))
 }
-*/
+
 //
 // 6.6 Input and Output Functions
 //  (uses stdio FILE streams)

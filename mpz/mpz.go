@@ -17,6 +17,21 @@ int macro_mpz_cmp_ui(const mpz_t op, unsigned long int op2) {
 int macro_mpz_sgn(const mpz_t op) {
         return mpz_sgn(op);
 }
+
+//
+// Allocate, init and set a mpz_t
+//
+mpz_ptr new_mpz_t(long int val) {
+	mpz_ptr x = (mpz_ptr) malloc(sizeof(mpz_t));
+	mpz_init(x);
+	mpz_set_si(x, val);
+	return x;
+}
+
+void delete_mpz_t(mpz_ptr x) {
+	mpz_clear(x);
+	free(x);
+}
 */
 import "C"
 
@@ -26,6 +41,13 @@ import (
 
 type Int C.mpz_t
 type IntPtr C.mpz_ptr
+
+func New(val int) IntPtr {
+	return IntPtr(C.new_mpz_t(C.long(val)))
+}
+func Delete(x IntPtr) {
+	C.delete_mpz_t(x)
+}
 
 //
 // 5.1 Initialization Functions

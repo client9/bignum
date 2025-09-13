@@ -2,13 +2,13 @@ package big
 
 import (
 	"runtime"
-	"unsafe"
 
 	"github.com/client9/bignum/mpz"
 )
 
-func newIntPtr() mpz.IntPtr {
-	return mpz.IntPtr(unsafe.Pointer(new(mpz.Int)))
+func newIntPtr(val int) mpz.IntPtr {
+	return mpz.New(val)
+	//return mpz.IntPtr(unsafe.Pointer(new(mpz.Int)))
 }
 
 type Int struct {
@@ -16,35 +16,29 @@ type Int struct {
 }
 
 func NewInt(x int64) *Int {
-	n := newIntPtr()
-	mpz.InitSetSi(n, int(x))
+	n := newIntPtr(int(x))
 	z := &Int{
 		ptr: n,
 	}
-	runtime.AddCleanup(z, mpz.Clear, n)
+	runtime.AddCleanup(z, mpz.Delete, n)
 	return z
 }
 
 func (z *Int) init() {
-	n := newIntPtr()
-	mpz.InitSetSi(n, 0)
+	n := newIntPtr(0)
 	z.ptr = n
-	runtime.AddCleanup(z, mpz.Clear, n)
+	runtime.AddCleanup(z, mpz.Delete, n)
 }
 
 func NewIntTmp(x int64) *Int {
-	n := newIntPtr()
-	mpz.InitSetSi(n, int(x))
+	n := newIntPtr(int(x))
 	z := &Int{
 		ptr: n,
 	}
 	return z
 }
 func (z *Int) Clear() {
-	if z.ptr != nil {
-		mpz.Clear(z.ptr)
-		z.ptr = nil
-	}
+	mpz.Delete(z.ptr)
 }
 
 func (z *Int) Abs(x *Int) *Int {
@@ -384,10 +378,10 @@ func (z *Int) Rem(x, y *Int) *Int {
 
 func (z *Int) SetInt64(x int64) {
 	if z.ptr == nil {
-		n := newIntPtr()
-		mpz.InitSetSi(n, int(x))
+		n := newIntPtr(int(x))
+		mpz.SetSi(n, int(x))
 		z.ptr = n
-		runtime.AddCleanup(z, mpz.Clear, n)
+		runtime.AddCleanup(z, mpz.Delete, n)
 	} else {
 		mpz.SetSi(z.ptr, int(x))
 	}
@@ -397,10 +391,10 @@ func (z *Int) SetInt64(x int64) {
 
 func (z *Int) SetUint64(x uint64) {
 	if z.ptr == nil {
-		n := newIntPtr()
-		mpz.InitSetUi(n, uint(x))
+		n := newIntPtr(0)
+		mpz.SetUi(n, uint(x))
 		z.ptr = n
-		runtime.AddCleanup(z, mpz.Clear, n)
+		runtime.AddCleanup(z, mpz.Delete, n)
 	} else {
 		mpz.SetUi(z.ptr, uint(x))
 	}
