@@ -18,12 +18,12 @@ import (
 //
 
 // Converting binary representation to decimal is hard work!
-func BenchmarkStdlibToString(b *testing.B) {
+func BenchmarkStdToString(b *testing.B) {
 	b.Skip()
 	for i := int64(10); i <= 1000000; i *= 10 {
-		name := fmt.Sprintf("StdLibStr%d", i)
+		name := fmt.Sprintf("%d", i)
 		b.Run(name, func(b *testing.B) {
-			x := nDigitNumberStdLib(i)
+			x := nDigitNumberStd(i)
 			for b.Loop() {
 				x.String()
 			}
@@ -34,7 +34,7 @@ func BenchmarkStdlibToString(b *testing.B) {
 func BenchmarkGmpToString(b *testing.B) {
 	b.Skip()
 	for i := int64(10); i <= 1000000; i *= 10 {
-		name := fmt.Sprintf("GmpStr%d", i)
+		name := fmt.Sprintf("%d", i)
 		b.Run(name, func(b *testing.B) {
 			x := nDigitNumberGmp(i)
 			for b.Loop() {
@@ -44,12 +44,38 @@ func BenchmarkGmpToString(b *testing.B) {
 	}
 }
 
-func BenchmarkStdlibAdd(b *testing.B) {
+func BenchmarkStdAddRaw(b *testing.B) {
 	for i := int64(10); i <= 1000000; i *= 10 {
-		name := fmt.Sprintf("StdlibAdd%d", i)
+		name := fmt.Sprintf("%d", i)
 		b.Run(name, func(b *testing.B) {
-			x := nDigitNumberStdLib(i)
-			y := nDigitNumberStdLib(i)
+			x := nDigitNumberStd(i)
+			y := nDigitNumberStd(i)
+			z := stdlib.NewInt(0)
+			for b.Loop() {
+				z.Add(x, y)
+			}
+		})
+	}
+}
+func BenchmarkGmpAddRaw(b *testing.B) {
+	for i := int64(10); i <= 1000000; i *= 10 {
+		name := fmt.Sprintf("%d", i)
+		b.Run(name, func(b *testing.B) {
+			x := nDigitNumberGmp(i)
+			y := nDigitNumberGmp(i)
+			z := NewInt(0)
+			for b.Loop() {
+				z.Add(x, y)
+			}
+		})
+	}
+}
+func BenchmarkStdAddAlloc(b *testing.B) {
+	for i := int64(10); i <= 1000000; i *= 10 {
+		name := fmt.Sprintf("%d", i)
+		b.Run(name, func(b *testing.B) {
+			x := nDigitNumberStd(i)
+			y := nDigitNumberStd(i)
 			for b.Loop() {
 				z := stdlib.NewInt(0)
 				z.Add(x, y)
@@ -57,9 +83,9 @@ func BenchmarkStdlibAdd(b *testing.B) {
 		})
 	}
 }
-func BenchmarkGmpAdd(b *testing.B) {
+func BenchmarkGmpAddAlloc(b *testing.B) {
 	for i := int64(10); i <= 1000000; i *= 10 {
-		name := fmt.Sprintf("GmpAdd%d", i)
+		name := fmt.Sprintf("%d", i)
 		b.Run(name, func(b *testing.B) {
 			x := nDigitNumberGmp(i)
 			y := nDigitNumberGmp(i)
@@ -70,14 +96,44 @@ func BenchmarkGmpAdd(b *testing.B) {
 		})
 	}
 }
-func BenchmarkStdlibMul(b *testing.B) {
+func BenchmarkStdMulRaw(b *testing.B) {
 	for i := int64(10); i <= 1000000; i *= 10 {
-		name := fmt.Sprintf("StdLibMul%d", i)
+		name := fmt.Sprintf("%d", i)
 		b.Run(name, func(b *testing.B) {
 			runtime.GC()
 			runtime.GC()
-			x := nDigitNumberStdLib(i)
-			y := nDigitNumberStdLib(i)
+			x := nDigitNumberStd(i)
+			y := nDigitNumberStd(i)
+			for b.Loop() {
+				z := stdlib.NewInt(0)
+				z.Mul(x, y)
+			}
+		})
+	}
+}
+func BenchmarkGmpMulRaw(b *testing.B) {
+	for i := int64(10); i <= 1000000; i *= 10 {
+		name := fmt.Sprintf("%d", i)
+		b.Run(name, func(b *testing.B) {
+			runtime.GC()
+			runtime.GC()
+			x := nDigitNumberGmp(i)
+			y := nDigitNumberGmp(i)
+			z := NewInt(0)
+			for b.Loop() {
+				z.Mul(x, y)
+			}
+		})
+	}
+}
+func BenchmarkStdMulAlloc(b *testing.B) {
+	for i := int64(10); i <= 1000000; i *= 10 {
+		name := fmt.Sprintf("%d", i)
+		b.Run(name, func(b *testing.B) {
+			runtime.GC()
+			runtime.GC()
+			x := nDigitNumberStd(i)
+			y := nDigitNumberStd(i)
 			for b.Loop() {
 				z := stdlib.NewInt(0)
 				z.Mul(x, y)
@@ -86,15 +142,14 @@ func BenchmarkStdlibMul(b *testing.B) {
 	}
 }
 
-func BenchmarkGmpMul(b *testing.B) {
+func BenchmarkGmpMulAlloc(b *testing.B) {
 	for i := int64(10); i <= 1000000; i *= 10 {
-		name := fmt.Sprintf("GmpMul%d", i)
+		name := fmt.Sprintf("%d", i)
 		b.Run(name, func(b *testing.B) {
 			runtime.GC()
 			runtime.GC()
 			x := nDigitNumberGmp(i)
 			y := nDigitNumberGmp(i)
-			//z := NewInt(0)
 			for b.Loop() {
 				z := NewInt(0)
 				z.Mul(x, y)
@@ -105,7 +160,7 @@ func BenchmarkGmpMul(b *testing.B) {
 
 func BenchmarkGmpMulDefer(b *testing.B) {
 	for i := int64(10); i <= 1000000; i *= 10 {
-		name := fmt.Sprintf("GmpMul%d", i)
+		name := fmt.Sprintf("%d", i)
 		b.Run(name, func(b *testing.B) {
 			x := nDigitNumberGmp(i)
 			y := nDigitNumberGmp(i)
@@ -122,7 +177,7 @@ func BenchmarkGmpMulDefer(b *testing.B) {
 func BenchmarkGmpMulPool(b *testing.B) {
 
 	for i := int64(10); i <= 1000000; i *= 10 {
-		name := fmt.Sprintf("GmpMul%d", i)
+		name := fmt.Sprintf("%d", i)
 		b.Run(name, func(b *testing.B) {
 			runtime.GC()
 			runtime.GC()
@@ -152,7 +207,7 @@ func nDigitNumberGmp(digits int64) *Int {
 }
 
 // Make a n digit number
-func nDigitNumberStdLib(digits int64) *stdlib.Int {
+func nDigitNumberStd(digits int64) *stdlib.Int {
 	x := stdlib.NewInt(10)
 	n := stdlib.NewInt(digits)
 	one := stdlib.NewInt(1)

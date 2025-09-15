@@ -29,10 +29,8 @@ func newRatPtr() mpq.RatPtr {
 
 func NewRat(a, b int64) *Rat {
 	n := newRatPtr()
-
 	mpq.Init(n)
 	mpq.SetSi(n, int(a), uint(b))
-
 	z := &Rat{
 		ptr: n,
 	}
@@ -103,6 +101,7 @@ func (x *Rat) Cmp(y *Rat) *Rat {
 	mpq.Cmp(x.ptr, y.ptr)
 	return x
 }
+
 func (z *Rat) Denom() *Int {
 	if z.ptr == nil {
 		return NewInt(1)
@@ -129,7 +128,15 @@ func (z *Rat) Float64() float64 {
 // TODO FloatString
 // TODO GobDecode
 // TODO GobEncode
+/*
 // TODO IsInt
+func (z *Rat) IsInt() bool {
+	if z.ptr == nil {
+		return true
+	}
+	return mpq.GetD(z.ptr)
+}
+*/
 // TODO MarshalText
 
 func (z *Rat) Mul(x, y *Rat) *Rat {
@@ -167,18 +174,35 @@ func (z *Rat) Num() *Int {
 	}
 }
 
-// TODO QUO
+func (z *Rat) Quo(x, y *Rat) *Rat {
+	if z.ptr == nil {
+		z.init()
+	}
+	if x.ptr == nil {
+		x.init()
+	}
+	if y.ptr == nil {
+		y.init()
+	}
+	mpq.Div(z.ptr, x.ptr, y.ptr)
+	return z
+}
+
 // TOOD RatString
 //    RETURNS PURE INT if denom == 1
 // TODO SCAN
-// TODO SET
+
+func (z *Rat) Set(x *Rat) *Rat {
+	if z.ptr == nil {
+		z.init()
+	}
+	mpq.Set(z.ptr, x.ptr)
+	return z
+}
 
 func (z *Rat) SetFloat64(x float64) {
 	if z.ptr == nil {
 		n := newRatPtr()
-
-		// Doesn't exist.. should make it.
-		//mpq.InitSetD(n, x)
 		mpq.Init(n)
 		mpq.SetD(n, x)
 		z.ptr = n
@@ -212,8 +236,6 @@ func (z *Rat) SetInt(x int) *Rat {
 func (z *Rat) SetInt64(x int64) *Rat {
 	if z.ptr == nil {
 		n := newRatPtr()
-		// doesn't exist.. should make it
-		//mpq.InitSetSi(n, uint(x))
 		mpq.Init(n)
 		mpq.SetSi(n, int(x), uint(1))
 		z.ptr = n
@@ -232,10 +254,6 @@ func (z *Rat) SetString(s string) (*Rat, bool) {
 func (z *Rat) SetUint64(x uint64) {
 	if z.ptr == nil {
 		n := newRatPtr()
-
-		// doesn't exist.. should make it
-		//mpq.InitSetUi(n, uint(x))
-
 		mpq.Init(n)
 		mpq.SetUi(n, uint(x), 1)
 		z.ptr = n
@@ -244,6 +262,7 @@ func (z *Rat) SetUint64(x uint64) {
 		mpq.SetUi(z.ptr, uint(x), uint(1))
 	}
 }
+
 func (z *Rat) Sign() int {
 	if z.ptr == nil {
 		return 0
