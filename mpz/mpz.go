@@ -86,11 +86,11 @@ func SetD(rop IntPtr, op float64) {
 
 // TODO mpz_set_q --> depends on mpq
 
-func SetStr(rop IntPtr, s string, base int) int {
+func SetStr(rop IntPtr, s string, base int) bool {
 	cstr := C.CString(s)
 	ret := C.mpz_set_str(rop, cstr, C.int(base))
 	C.free(unsafe.Pointer(cstr))
-	return int(ret)
+	return ret == 0
 }
 
 func Swap(rop1 IntPtr, rop2 IntPtr) {
@@ -122,7 +122,10 @@ func InitSetStr(rop IntPtr, s string, base int) int {
 	return int(ret)
 }
 
+//
 // 5.4 Conversion Functions
+//
+
 func GetUi(rop IntPtr) uint {
 	return uint(C.mpz_get_ui(rop))
 }
@@ -184,9 +187,9 @@ func SubMul(rop IntPtr, op1 IntPtr, op2 IntPtr) {
 func SubmulUi(rop IntPtr, op1 IntPtr, op2 uint) {
 	C.mpz_submul_ui(rop, op1, C.ulong(op2))
 }
-
-// TODO mpz_mul_2exp
-
+func Mul2exp(rop IntPtr, op IntPtr, n uint) {
+	C.mpz_mul_2exp(rop, op, C.ulong(n))
+}
 func Neg(rop IntPtr, op IntPtr) {
 	C.mpz_neg(rop, op)
 }
@@ -217,6 +220,15 @@ func FdivR(r IntPtr, n IntPtr, d IntPtr) {
 func FdivQr(q IntPtr, r IntPtr, n IntPtr, d IntPtr) {
 	C.mpz_fdiv_qr(q, r, n, d)
 }
+
+// TODO MANY FIV
+
+func FdivQ2exp(q IntPtr, n IntPtr, b int) {
+	C.mpz_fdiv_q_2exp(q, n, C.mp_bitcnt_t(b))
+}
+func FdivR2exp(r IntPtr, n IntPtr, b int) {
+	C.mpz_fdiv_r_2exp(r, n, C.mp_bitcnt_t(b))
+}
 func TdivQ(q IntPtr, n IntPtr, d IntPtr) {
 	C.mpz_tdiv_q(q, n, d)
 }
@@ -226,11 +238,24 @@ func TdivR(r IntPtr, n IntPtr, d IntPtr) {
 func TdivQr(q IntPtr, r IntPtr, n IntPtr, d IntPtr) {
 	C.mpz_tdiv_qr(q, r, n, d)
 }
+
+// TODO MANY TDIV
+
+func TdivQ2exp(q IntPtr, n IntPtr, b int) {
+	C.mpz_tdiv_q_2exp(q, n, C.mp_bitcnt_t(b))
+}
+func TdivR2exp(r IntPtr, n IntPtr, b int) {
+	C.mpz_tdiv_r_2exp(r, n, C.mp_bitcnt_t(b))
+}
+
 func Mod(r IntPtr, n IntPtr, d IntPtr) {
 	C.mpz_mod(r, n, d)
 }
 
+//
 // 5.7 Exponentiation Functions
+//
+
 func Powm(rop IntPtr, base IntPtr, exp IntPtr, mod IntPtr) {
 	C.mpz_powm(rop, base, exp, mod)
 }
@@ -257,7 +282,10 @@ func Sqrt(rop IntPtr, op IntPtr) {
 	C.mpz_sqrt(rop, op)
 }
 
+//
 // 5.9 Number Theoretic Functions
+//
+
 func ProbabPrimeP(n IntPtr, reps int) int {
 	return int(C.mpz_probab_prime_p(n, C.int(reps)))
 }
@@ -266,11 +294,34 @@ func Gcd(rop IntPtr, op1 IntPtr, op2 IntPtr) {
 	C.mpz_gcd(rop, op1, op2)
 }
 
-func Invert(rop IntPtr, op1 IntPtr, op2 IntPtr) {
-	C.mpz_invert(rop, op1, op2)
+func Gcdext(g IntPtr, s IntPtr, t IntPtr, a IntPtr, b IntPtr) {
+	C.mpz_gcdext(g, s, t, a, b)
 }
 
+func Invert(rop IntPtr, op1 IntPtr, op2 IntPtr) int {
+	return int(C.mpz_invert(rop, op1, op2))
+}
+
+func Jacobi(a IntPtr, b IntPtr) int {
+	return int(C.mpz_jacobi(a, b))
+}
+
+func Legendre(a IntPtr, p IntPtr) int {
+	return int(C.mpz_legendre(a, p))
+}
+
+func FacUi(rop IntPtr, n uint) {
+	C.mpz_fac_ui(rop, C.ulong(n))
+}
+
+func BinUiUi(rop IntPtr, n uint, k uint) {
+	C.mpz_bin_uiui(rop, C.ulong(n), C.ulong(k))
+}
+
+//
 // 5.10 Comparison Functions
+//
+
 func Cmp(op1 IntPtr, op2 IntPtr) int {
 	return int(C.mpz_cmp(op1, op2))
 }
@@ -319,17 +370,68 @@ func Com(rop IntPtr, op IntPtr) {
 	C.mpz_com(rop, op)
 }
 
+func Setbit(rop IntPtr, i uint) {
+	C.mpz_setbit(rop, C.mp_bitcnt_t(i))
+}
+
+func Clrbit(rop IntPtr, i uint) {
+	C.mpz_clrbit(rop, C.mp_bitcnt_t(i))
+}
+
+func Combit(rop IntPtr, i uint) {
+	C.mpz_combit(rop, C.mp_bitcnt_t(i))
+}
+
+func Tstbit(rop IntPtr, i uint) int {
+	return int(C.mpz_tstbit(rop, C.mp_bitcnt_t(i)))
+}
+
 //
 // 5.12 Input and Output Functions
 //
 
 //
-// 5.13 Input and Output Functions
+// 5.13 Random Number Functions
 //
 
 //
-// 5.14 IntPtreger Import and Export
+// 5.14 Integer Import and Export
 //
+
+// ImportGo - standard big endian input
+func ImportGo(op IntPtr, buf []byte) {
+	// order  1 -- most significant bytes first
+	// size   1 -- output a byte at a time
+	// endian 1 -- big endian
+	// nail   0 -- don't ignore any bits
+	Import(op, buf, 1, 1, 1, 0)
+}
+
+func Import(op IntPtr, buf []byte, order int, size uint, endian int, nails uint) {
+	C.mpz_import(op, C.size_t(len(buf)), C.int(order), C.size_t(size), C.int(endian), C.size_t(nails), unsafe.Pointer(&buf[0]))
+}
+
+// ExportGo -- standard bigendian output
+func ExportGo(op IntPtr) []byte {
+	// export a byte at a time
+	// perhaps possible to have it output a full uint64 at a time
+	// and do a cast back to bytes.
+
+	//
+	// order 1 -- most significant bytes first
+	// size 1 - output a byte at a time
+	// endian 1 -- big endian
+	// nail 0 -- don't ignore any bits
+	return Export(1, 1, 1, 0, op)
+}
+
+func Export(order int, size uint, endian int, nails uint, op IntPtr) []byte {
+	bitlen := C.mpz_sizeinbase(op, 2)
+	b := make([]byte, 1+(bitlen+7)/8)
+	n := C.size_t(len(b))
+	C.mpz_export(unsafe.Pointer(&b[0]), &n, 1, 1, 1, 0, op)
+	return b[0:n]
+}
 
 // 5.15 Miscellaneous Functions
 func FitsUlongP(op IntPtr) int {

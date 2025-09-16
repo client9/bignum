@@ -55,6 +55,8 @@ char* mpfr_sprintf2(const char* template, mpfr_t x)  {
 import "C"
 
 import (
+	"github.com/client9/bignum/mpq"
+	"github.com/client9/bignum/mpz"
 	"unsafe"
 )
 
@@ -123,6 +125,22 @@ func SetD(z FloatPtr, val float64, rnd RoundMode) int {
 	return int(C.mpfr_set_d(z, C.double(val), C.mpfr_rnd_t(rnd)))
 }
 
+func SetZ(z FloatPtr, op mpz.IntPtr, rnd RoundMode) int {
+	return int(C.mpfr_set_z(z, C.mpz_ptr(unsafe.Pointer(op)), C.mpfr_rnd_t(rnd)))
+}
+
+func SetQ(z FloatPtr, op mpq.RatPtr, rnd RoundMode) int {
+	return int(C.mpfr_set_q(z, C.mpq_ptr(unsafe.Pointer(op)), C.mpfr_rnd_t(rnd)))
+}
+
+func SetStr(x FloatPtr, s string, base int, rnd RoundMode) int {
+	//cstr := unsafe.Pointer(C.CString(s))
+	cstr := C.CString(s)
+	ret := C.mpfr_set_str(x, cstr, C.int(base), C.mpfr_rnd_t(rnd))
+	C.free(unsafe.Pointer(cstr))
+	return int(ret)
+}
+
 // TODO OTHER VARIATIONS
 
 func SetNan(x FloatPtr) {
@@ -161,12 +179,13 @@ func InitSetD(z FloatPtr, val float64, rnd RoundMode) int {
 // TODO: mpfr_set_ld "long double" is probably a 64-bit integer, but in some
 // place it might be 80bit.
 
-// TODO: mpfr_set_z, set_q, set_f
+// MACRO:
+// TODO: mpfr_init_set_z, init_set_q, set_f
 
 func InitSetStr(x FloatPtr, s string, base int, rnd RoundMode) int {
 	//cstr := unsafe.Pointer(C.CString(s))
 	cstr := C.CString(s)
-	ret := C.mpfr_set_str(x, cstr, C.int(base), C.mpfr_rnd_t(rnd))
+	ret := C.mpfr_init_set_str(x, cstr, C.int(base), C.mpfr_rnd_t(rnd))
 	C.free(unsafe.Pointer(cstr))
 	return int(ret)
 }

@@ -1,6 +1,7 @@
 package big
 
 import (
+	"fmt"
 	stdlib "math/big"
 	"runtime"
 	"unsafe"
@@ -139,14 +140,13 @@ func (z *Float) IsInf() bool {
 	return mpfr.InfP(z.ptr) == 1
 }
 
-/*
 func (z *Float) IsInt() bool {
 	if z.ptr == nil {
 		return true
 	}
-	return mpfr.GetSi(z.ptr) == 1
+	return mpfr.GetSi(z.ptr, z.mode) == 1
 }
-*/
+
 // TODO MANTEXP
 // TODO MARSHALTEXT
 
@@ -216,17 +216,29 @@ func (z *Float) Quo(x, y *Float) *Float {
 
 // TODO RAT
 // TODO SCAN
-// TODO SET
 
-func (z *Float) SetFloat64(d float64) {
+func (z *Float) Set(x *Float) *Float {
+	if z.ptr == nil {
+		n := newFloatPtr()
+		mpfr.InitSet(n, x.ptr, mpfr.RNDN)
+		z.ptr = n
+		runtime.AddCleanup(z, mpfr.Clear, n)
+		return z
+	}
+	mpfr.Set(z.ptr, x.ptr, z.mode)
+	return z
+}
+
+func (z *Float) SetFloat64(d float64) *Float {
 	if z.ptr == nil {
 		n := newFloatPtr()
 		mpfr.InitSetD(n, d, mpfr.RNDN)
 		z.ptr = n
 		runtime.AddCleanup(z, mpfr.Clear, n)
-		return
+		return z
 	}
 	mpfr.SetD(z.ptr, d, z.mode)
+	return z
 }
 
 func (z *Float) SetInf(signbit bool) {
@@ -240,7 +252,16 @@ func (z *Float) SetInf(signbit bool) {
 	}
 }
 
-// TODO SETINT
+func (z *Float) SetInt(x *Int) {
+	if z.ptr == nil {
+		n := newFloatPtr()
+		mpfr.SetZ(n, x.ptr, mpfr.RNDN)
+		z.ptr = n
+		runtime.AddCleanup(z, mpfr.Clear, n)
+		return
+	}
+	mpfr.SetZ(z.ptr, x.ptr, z.mode)
+}
 
 func (z *Float) SetInt64(d int64) {
 	if z.ptr == nil {
@@ -271,8 +292,29 @@ func (z *Float) SetPrec(prec uint) {
 	z.prec = prec
 }
 
+func (z *Float) SetRat(x *Rat) {
+	if z.ptr == nil {
+		n := newFloatPtr()
+		mpfr.SetQ(n, x.ptr, mpfr.RNDN)
+		z.ptr = n
+		runtime.AddCleanup(z, mpfr.Clear, n)
+		return
+	}
+	mpfr.SetQ(z.ptr, x.ptr, z.mode)
+}
+
 // TODO SETRAT
 // TODO SETSTRING
+
+func (z *Float) SetString(s string) (*Float, error) {
+	if len(s) == 0 {
+		return nil, fmt.Errorf("empty string")
+	}
+	if mpfr.SetStr(z.ptr, s, 10, z.mode) != 0 {
+		return nil, fmt.Errorf("float conversion failed")
+	}
+	return z, nil
+}
 
 func (z *Float) SetUnt64(d uint64) {
 	if z.ptr == nil {
