@@ -129,6 +129,15 @@ func (z *Rat) Float64() float64 {
 // TODO GobDecode
 // TODO GobEncode
 
+func (z *Rat) Inv(x *Rat) *Float {
+	if z.ptr == nil {
+		z.init()
+	}
+	// TODO ERROR
+	mpq.Inv(z.ptr, x.ptr)
+	return z
+}
+
 func (z *Rat) IsInt() bool {
 	if z.ptr == nil {
 		return true

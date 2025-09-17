@@ -280,19 +280,21 @@ func (z *Float) SetInt64(d int64) *Float {
 
 // TODO SETMANTEXP
 
-func (z *Float) SetMode(mode stdlib.RoundingMode) {
+func (z *Float) SetMode(mode stdlib.RoundingMode) *Float {
 	if z.ptr == nil {
 		z.init()
 	}
 	z.mode = importRoundingMode(mode)
+	return z
 }
 
-func (z *Float) SetPrec(prec uint) {
+func (z *Float) SetPrec(prec uint) *Float {
 	if z.ptr == nil {
 		z.init()
 	}
 	mpfr.SetPrec(z.ptr, int(prec))
 	z.prec = prec
+	return z
 }
 
 func (z *Float) SetRat(x *Rat) *Float {
