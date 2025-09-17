@@ -192,7 +192,7 @@ func (z *Float) Neg(x *Float) *Float {
 
 // TODO PARSE
 
-func (z *Float) Prec(prec uint) uint {
+func (z *Float) Prec() uint {
 	// doesn't matter if z is initialized or not
 	return z.prec
 }
@@ -241,7 +241,7 @@ func (z *Float) SetFloat64(d float64) *Float {
 	return z
 }
 
-func (z *Float) SetInf(signbit bool) {
+func (z *Float) SetInf(signbit bool) *Float {
 	if z.ptr == nil {
 		z.init()
 	}
@@ -250,29 +250,32 @@ func (z *Float) SetInf(signbit bool) {
 	} else {
 		mpfr.SetInf(z.ptr, 0)
 	}
+	return z
 }
 
-func (z *Float) SetInt(x *Int) {
+func (z *Float) SetInt(x *Int) *Float {
 	if z.ptr == nil {
 		n := newFloatPtr()
 		mpfr.SetZ(n, x.ptr, mpfr.RNDN)
 		z.ptr = n
 		runtime.AddCleanup(z, mpfr.Clear, n)
-		return
+		return z
 	}
 	mpfr.SetZ(z.ptr, x.ptr, z.mode)
+	return z
 }
 
-func (z *Float) SetInt64(d int64) {
+func (z *Float) SetInt64(d int64) *Float {
 	if z.ptr == nil {
 		n := newFloatPtr()
 		mpfr.InitSetSi(n, d, mpfr.RNDN)
 		z.ptr = n
 		runtime.AddCleanup(z, mpfr.Clear, n)
-		return
+		return z
 	}
 
 	mpfr.SetSi(z.ptr, d, z.mode)
+	return z
 }
 
 // TODO SETMANTEXP
@@ -292,18 +295,16 @@ func (z *Float) SetPrec(prec uint) {
 	z.prec = prec
 }
 
-func (z *Float) SetRat(x *Rat) {
+func (z *Float) SetRat(x *Rat) *Float {
 	if z.ptr == nil {
 		n := newFloatPtr()
-		mpfr.SetQ(n, x.ptr, mpfr.RNDN)
 		z.ptr = n
 		runtime.AddCleanup(z, mpfr.Clear, n)
-		return
 	}
 	mpfr.SetQ(z.ptr, x.ptr, z.mode)
+	return z
 }
 
-// TODO SETRAT
 // TODO SETSTRING
 
 func (z *Float) SetString(s string) (*Float, error) {

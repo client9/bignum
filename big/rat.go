@@ -5,6 +5,7 @@ import (
 	"unsafe"
 
 	"github.com/client9/bignum/mpq"
+	"github.com/client9/bignum/mpz"
 )
 
 type Rat struct {
@@ -91,15 +92,14 @@ func (z *Rat) Add(x, y *Rat) *Rat {
 
 // TODO AppendText
 
-func (x *Rat) Cmp(y *Rat) *Rat {
+func (x *Rat) Cmp(y *Rat) int {
 	if x.ptr == nil {
 		x.init()
 	}
 	if y.ptr == nil {
 		y.init()
 	}
-	mpq.Cmp(x.ptr, y.ptr)
-	return x
+	return mpq.Cmp(x.ptr, y.ptr)
 }
 
 func (z *Rat) Denom() *Int {
@@ -108,7 +108,7 @@ func (z *Rat) Denom() *Int {
 	}
 	// Do not set up Cleanup/Finalizer
 	return &Int{
-		ptr: mpq.DenRef(z.ptr),
+		ptr: mpq.Denref(z.ptr),
 	}
 }
 
@@ -128,15 +128,14 @@ func (z *Rat) Float64() float64 {
 // TODO FloatString
 // TODO GobDecode
 // TODO GobEncode
-/*
-// TODO IsInt
+
 func (z *Rat) IsInt() bool {
 	if z.ptr == nil {
 		return true
 	}
-	return mpq.GetD(z.ptr)
+	return mpz.CmpUi(mpq.Denref(z.ptr), 1) == 0
 }
-*/
+
 // TODO MarshalText
 
 func (z *Rat) Mul(x, y *Rat) *Rat {
@@ -170,7 +169,7 @@ func (z *Rat) Num() *Int {
 	}
 	// Do not set up Cleanup/Finalizer
 	return &Int{
-		ptr: mpq.NumRef(z.ptr),
+		ptr: mpq.Numref(z.ptr),
 	}
 }
 
@@ -229,8 +228,15 @@ func (z *Rat) SetFrac64(a, b int64) *Rat {
 	return z
 }
 
-func (z *Rat) SetInt(x int) *Rat {
-	return z.SetInt64(int64(x))
+func (z *Rat) SetInt(x *Int) *Rat {
+	if z.ptr == nil {
+		n := newRatPtr()
+		mpq.Init(n)
+		z.ptr = n
+		runtime.AddCleanup(z, mpq.Clear, n)
+	}
+	mpq.SetZ(z.ptr, x.ptr)
+	return z
 }
 
 func (z *Rat) SetInt64(x int64) *Rat {

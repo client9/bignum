@@ -222,11 +222,12 @@ func (z *Int) Exp(x, y, m *Int) *Int {
 
 // TODO FILLBYTES
 
-func (z *Int) Float64() float64 {
+func (z *Int) Float64() (float64, Accuracy) {
 	if z.ptr == nil {
-		return 0.0
+		return 0.0, Exact
 	}
-	return mpz.GetD(z.ptr)
+	// TODO -- do this correctly
+	return mpz.GetD(z.ptr), Exact
 }
 
 // TODO FORMAT

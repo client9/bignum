@@ -58,7 +58,9 @@ func Set(rop RatPtr, op RatPtr) {
 	C.mpq_set(rop, op)
 }
 
-// TODO mpq_set_z
+func SetZ(rop RatPtr, op mpz.IntPtr) {
+	C.mpq_set_z(rop, C.mpz_ptr(unsafe.Pointer(op)))
+}
 
 func SetUi(rop RatPtr, op1 uint, op2 uint) {
 	C.mpq_set_ui(rop, C.ulong(op1), C.ulong(op2))
@@ -79,7 +81,9 @@ func Swap(rop1 RatPtr, rop2 RatPtr) {
 	C.mpq_swap(rop1, rop2)
 }
 
+//
 // 6.2 Conversion Functions
+//
 
 func GetD(rop RatPtr) float64 {
 	return float64(C.mpq_get_d(rop))
@@ -171,7 +175,7 @@ func Equal(op1 RatPtr, op2 RatPtr) int {
 }
 
 // 6.5 Applying Integer Functions to RatPtrionals
-func NumRef(op RatPtr) mpz.IntPtr {
+func Numref(op RatPtr) mpz.IntPtr {
 	// the macro below returns a mpz_ptr which is a mpz.IntPtr
 	// but under CGO (and GO) rules the names have to match exactly
 	//  so we force cast it.
@@ -180,7 +184,7 @@ func NumRef(op RatPtr) mpz.IntPtr {
 	return mpz.IntPtr(unsafe.Pointer(ptr))
 }
 
-func DenRef(op RatPtr) mpz.IntPtr {
+func Denref(op RatPtr) mpz.IntPtr {
 	ptr := C.macro_mpq_denref(op)
 	return mpz.IntPtr(unsafe.Pointer(ptr))
 }
