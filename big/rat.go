@@ -129,7 +129,7 @@ func (z *Rat) Float64() float64 {
 // TODO GobDecode
 // TODO GobEncode
 
-func (z *Rat) Inv(x *Rat) *Float {
+func (z *Rat) Inv(x *Rat) *Rat {
 	if z.ptr == nil {
 		z.init()
 	}
