@@ -205,6 +205,10 @@ func GetUi(op FloatPtr, rnd RoundMode) int {
 	return int(C.mpfr_get_ui(op, C.mpfr_rnd_t(rnd)))
 }
 
+func GetZ(rop mpz.IntPtr, op FloatPtr, rnd RoundMode) int {
+	return int(C.mpfr_get_z(C.mpz_ptr(unsafe.Pointer(rop)), op, C.mpfr_rnd_t(rnd)))
+}
+
 func GetStrNdigits(b int, prec int) int {
 	return int(C.mpfr_get_str_ndigits(C.int(b), C.mpfr_prec_t(prec)))
 }
@@ -316,6 +320,26 @@ func Neg(rop FloatPtr, op FloatPtr, rnd RoundMode) int {
 
 func Abs(rop FloatPtr, op FloatPtr, rnd RoundMode) int {
 	return int(C.mpfr_abs(rop, op, C.mpfr_rnd_t(rnd)))
+}
+
+func Mul2ui(rop FloatPtr, op1 FloatPtr, n uint, rnd RoundMode) int {
+	return int(C.mpfr_mul_2ui(rop, op1, C.ulong(n), C.mpfr_rnd_t(rnd)))
+}
+
+func Mul2si(rop FloatPtr, op1 FloatPtr, n int, rnd RoundMode) int {
+	return int(C.mpfr_mul_2si(rop, op1, C.long(n), C.mpfr_rnd_t(rnd)))
+}
+
+func Div2ui(rop FloatPtr, op1 FloatPtr, n uint, rnd RoundMode) int {
+	return int(C.mpfr_div_2ui(rop, op1, C.ulong(n), C.mpfr_rnd_t(rnd)))
+}
+
+func Div2si(rop FloatPtr, op1 FloatPtr, n int, rnd RoundMode) int {
+	return int(C.mpfr_div_2si(rop, op1, C.long(n), C.mpfr_rnd_t(rnd)))
+}
+
+func FacUi(rop FloatPtr, n uint, rnd RoundMode) int {
+	return int(C.mpfr_fac_ui(rop, C.ulong(n), C.mpfr_rnd_t(rnd)))
 }
 
 // TOOD other functions
