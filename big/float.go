@@ -120,12 +120,16 @@ func (z *Float) Float64() float64 {
 // TODO GOBDECODE
 // TODO GOBENCODE
 
-func (z *Float) Int() int {
+func (z *Float) Int() *Int {
+	i := NewInt(0)
 	if z.ptr == nil {
-		return 0
+		return i
 	}
-	return int(mpfr.GetSi(z.ptr, z.mode))
+	// round to zero
+	mpfr.GetZ(i.ptr, z.ptr, mpfr.RNDZ)
+	return i
 }
+
 func (z *Float) Int64() int64 {
 	if z.ptr == nil {
 		return 0
@@ -278,7 +282,11 @@ func (z *Float) SetInt64(d int64) *Float {
 	return z
 }
 
-// TODO SETMANTEXP
+func (z *Float) SetMantExp(mant *Float, exp int) *Float {
+	z.Set(mant)
+	mpfr.Mul2si(z.ptr, z.ptr, exp, mpfr.RNDN)
+	return z
+}
 
 func (z *Float) SetMode(mode stdlib.RoundingMode) *Float {
 	if z.ptr == nil {
