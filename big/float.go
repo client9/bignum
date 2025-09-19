@@ -276,9 +276,11 @@ func (z *Float) SetInt(x *Int) *Float {
 		return z
 	}
 	mpfr.SetZ(z.ptr, x.ptr, z.mode)
-	z.prec = uint(x.BitLen())
-	if z.prec < 64 {
-		z.prec = 64
+	if z.prec == 0 {
+		z.prec = uint(x.BitLen())
+		if z.prec < 64 {
+			z.prec = 64
+		}
 	}
 	return z
 }
@@ -293,7 +295,9 @@ func (z *Float) SetInt64(d int64) *Float {
 		return z
 	}
 	mpfr.SetSi(z.ptr, d, z.mode)
-	z.prec = 64
+	if z.prec == 0 {
+		z.prec = 64
+	}
 	return z
 }
 
