@@ -354,11 +354,11 @@ func (z *Float) SetString(s string) (*Float, error) {
 		prec -= 1
 	}
 	p := uint(math.Floor(float64(prec) / math.Log10(2.0)))
-
+	// do before setting
+	z.SetPrec(p)
 	if mpfr.SetStr(z.ptr, s, 10, z.mode) != 0 {
 		return nil, fmt.Errorf("float conversion failed")
 	}
-	z.SetPrec(p)
 
 	return z, nil
 }
