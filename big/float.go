@@ -2,8 +2,10 @@ package big
 
 import (
 	"fmt"
+	"math"
 	stdlib "math/big"
 	"runtime"
+	"strings"
 	"unsafe"
 
 	"github.com/client9/bignum/mpfr"
@@ -30,7 +32,7 @@ func NewFloat(x float64) *Float {
 	mpfr.InitSetD(n, x, mpfr.RNDN)
 	z := &Float{
 		ptr:  n,
-		prec: 0,
+		prec: 53,
 		mode: 0,
 	}
 	runtime.AddCleanup(z, mpfr.Clear, n)
@@ -226,10 +228,12 @@ func (z *Float) Set(x *Float) *Float {
 		n := newFloatPtr()
 		mpfr.InitSet(n, x.ptr, mpfr.RNDN)
 		z.ptr = n
+		z.prec = x.prec
 		runtime.AddCleanup(z, mpfr.Clear, n)
 		return z
 	}
 	mpfr.Set(z.ptr, x.ptr, z.mode)
+	z.prec = x.prec
 	return z
 }
 
@@ -238,10 +242,12 @@ func (z *Float) SetFloat64(d float64) *Float {
 		n := newFloatPtr()
 		mpfr.InitSetD(n, d, mpfr.RNDN)
 		z.ptr = n
+		z.prec = 53
 		runtime.AddCleanup(z, mpfr.Clear, n)
 		return z
 	}
 	mpfr.SetD(z.ptr, d, z.mode)
+	z.prec = 53
 	return z
 }
 
@@ -260,12 +266,20 @@ func (z *Float) SetInf(signbit bool) *Float {
 func (z *Float) SetInt(x *Int) *Float {
 	if z.ptr == nil {
 		n := newFloatPtr()
-		mpfr.SetZ(n, x.ptr, mpfr.RNDN)
+		mpfr.InitSetZ(n, x.ptr, mpfr.RNDN)
 		z.ptr = n
+		z.prec = uint(x.BitLen())
+		if z.prec < 64 {
+			z.prec = 64
+		}
 		runtime.AddCleanup(z, mpfr.Clear, n)
 		return z
 	}
 	mpfr.SetZ(z.ptr, x.ptr, z.mode)
+	z.prec = uint(x.BitLen())
+	if z.prec < 64 {
+		z.prec = 64
+	}
 	return z
 }
 
@@ -274,11 +288,12 @@ func (z *Float) SetInt64(d int64) *Float {
 		n := newFloatPtr()
 		mpfr.InitSetSi(n, d, mpfr.RNDN)
 		z.ptr = n
+		z.prec = 64
 		runtime.AddCleanup(z, mpfr.Clear, n)
 		return z
 	}
-
 	mpfr.SetSi(z.ptr, d, z.mode)
+	z.prec = 64
 	return z
 }
 
@@ -300,7 +315,7 @@ func (z *Float) SetPrec(prec uint) *Float {
 	if z.ptr == nil {
 		z.init()
 	}
-	mpfr.SetPrec(z.ptr, int(prec))
+	mpfr.PrecRound(z.ptr, int(prec), z.mode)
 	z.prec = prec
 	return z
 }
@@ -315,15 +330,36 @@ func (z *Float) SetRat(x *Rat) *Float {
 	return z
 }
 
-// TODO SETSTRING
-
 func (z *Float) SetString(s string) (*Float, error) {
 	if len(s) == 0 {
 		return nil, fmt.Errorf("empty string")
 	}
+	if z.ptr == nil {
+		z.init()
+	}
+
+	// HACK
+	// Assume base 10 for now
+
+	s2 := s
+	if s2[0] == '-' || s2[0] == '+' {
+		s2 = s2[1:]
+	}
+	idx := strings.IndexAny(s2, "eE")
+	if idx != -1 {
+		s2 = s2[:idx]
+	}
+	prec := len(s2)
+	if strings.IndexByte(s2, '.') != -1 {
+		prec -= 1
+	}
+	p := uint(math.Floor(float64(prec) / math.Log10(2.0)))
+
 	if mpfr.SetStr(z.ptr, s, 10, z.mode) != 0 {
 		return nil, fmt.Errorf("float conversion failed")
 	}
+	z.SetPrec(p)
+
 	return z, nil
 }
 
@@ -372,8 +408,29 @@ func (z *Float) String() string {
 	if z.ptr == nil {
 		return ""
 	}
+
+	d := z.Float64()
+	// if bigger than 10^6, or smaller than 10^-6 use exponential form
+	if (d <= 0.000001) || (d >= 1000000) {
+		return mpfr.Sprintf3("%R*e", mpfr.RNDN, z.ptr)
+	}
+
+	// MPFR in "g" mode switches to "e" if d < 0.0001
+	// Want 10^-6
+	if d <= 0.0001 {
+		s, e := mpfr.GetStr(10, 0, z.ptr, mpfr.RNDN)
+		return "0." + strings.Repeat("0", -e) + s
+	}
+	// stdlib uses bits for precision, convert to decimal digits
+	prec := int(math.Ceil(float64(z.Prec()) * math.Log10(2)))
+	// make the format string
+	fstr := fmt.Sprintf("%%.%dR*G", prec)
+
+	// and make the output
+	return mpfr.Sprintf3(fstr, mpfr.RNDN, z.ptr)
+
 	// matches Go
-	return mpfr.Sprintf3("%.10R*g", z.mode, z.ptr)
+	//return mpfr.Sprintf3("%.10R*g", z.mode, z.ptr)
 }
 
 func (z *Float) Sub(x, y *Float) *Float {

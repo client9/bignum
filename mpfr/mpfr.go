@@ -21,6 +21,12 @@ int fn_mpfr_init_set_si(mpfr_t rop, long int op, mpfr_rnd_t rnd) {
 int fn_mpfr_init_set_d (mpfr_t rop, double op, mpfr_rnd_t rnd) {
 	return mpfr_init_set_d(rop, op, rnd);
 }
+int fn_mpfr_init_set_z (mpfr_t rop, mpz_t op, mpfr_rnd_t rnd) {
+	return mpfr_init_set_z(rop, op, rnd);
+}
+int fn_mpfr_init_set_q (mpfr_t rop, mpq_t op, mpfr_rnd_t rnd) {
+	return mpfr_init_set_q(rop, op, rnd);
+}
 
 // mpfr_print is va-arg function which can't be called by cgo.
 // Wrap basic case of a template string for a mpfr_t
@@ -174,6 +180,12 @@ func InitSetSi(z FloatPtr, op int64, rnd RoundMode) int {
 }
 func InitSetD(z FloatPtr, val float64, rnd RoundMode) int {
 	return int(C.fn_mpfr_init_set_d(z, C.double(val), C.mpfr_rnd_t(rnd)))
+}
+func InitSetZ(z FloatPtr, val mpz.IntPtr, rnd RoundMode) int {
+	return int(C.fn_mpfr_init_set_z(z, C.mpz_ptr(unsafe.Pointer(val)), C.mpfr_rnd_t(rnd)))
+}
+func InitSetQ(z FloatPtr, val mpq.RatPtr, rnd RoundMode) int {
+	return int(C.fn_mpfr_init_set_q(z, C.mpq_ptr(unsafe.Pointer(val)), C.mpfr_rnd_t(rnd)))
 }
 
 // TODO: mpfr_set_ld "long double" is probably a 64-bit integer, but in some
@@ -588,7 +600,9 @@ func Roundeven(rop FloatPtr, op FloatPtr) int {
 func Trunc(rop FloatPtr, op FloatPtr) int {
 	return int(C.mpfr_trunc(rop, op))
 }
-
+func Frac(rop FloatPtr, op FloatPtr, rnd RoundMode) int {
+	return int(C.mpfr_frac(rop, op, C.mpfr_rnd_t(rnd)))
+}
 func RintCeil(rop FloatPtr, op FloatPtr, rnd RoundMode) int {
 	return int(C.mpfr_rint_ceil(rop, op, C.mpfr_rnd_t(rnd)))
 }
@@ -608,6 +622,9 @@ func RintTrunc(rop FloatPtr, op FloatPtr, rnd RoundMode) int {
 // 5.11 Rounding-Related Functions
 func MinPrec(x FloatPtr) uint {
 	return uint(C.mpfr_min_prec(x))
+}
+func PrecRound(x FloatPtr, prec int, rnd RoundMode) int {
+	return int(C.mpfr_prec_round(x, C.mpfr_prec_t(prec), C.mpfr_rnd_t(rnd)))
 }
 
 //
